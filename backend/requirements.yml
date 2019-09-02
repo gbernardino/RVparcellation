@@ -1,0 +1,25 @@
+name: root
+channels:
+  - simpleitk
+  - pytorch
+  - anaconda
+  - conda-forge
+  - defaults
+dependencies:
+  - dask
+  - trimesh
+  - python=3.6
+  - vtk
+  - networkx
+  - scikit-learn
+  - cvxopt
+  - tqdm
+  - scipy=1.2.1
+  - shapely
+  - numpy
+  - matplotlib
+  - flask-restful
+  - flask-cors 
+  - sfepy
+  - jupyterlab
+  - pyzmq

@@ -21,7 +21,7 @@ RUN wget https://repo.continuum.io/archive/Anaconda3-5.0.1-Linux-x86_64.sh
 RUN bash Anaconda3-5.0.1-Linux-x86_64.sh -b
 RUN rm Anaconda3-5.0.1-Linux-x86_64.sh
 
-# Set path to conda
+# Set path to conda 
 #ENV PATH /root/anaconda3/bin:$PATH
 ENV PATH /home/ubuntu/anaconda3/bin:$PATH
 
@@ -32,9 +32,13 @@ WORKDIR /opt/app
 # Updating Anaconda packages
 RUN conda env update -f requirements.yml
 RUN pip install gdist pymeshfix flask-uploads flask-dropzone
+RUN pip install tornado==4.5.3
+RUN sudo apt-get update
+RUN sudo apt-get install -y libgl1-mesa-glx libssl1.0.0 tetgen
 
 #COPY ALL FILES
 COPY ./src /opt/app/src
+COPY ./Data /opt/app/Data
 
 #Execute 
 EXPOSE 5000

@@ -80,6 +80,9 @@ class App extends React.Component {
   sendPatientFile(k){
     var myHeaders = new Headers();
     var formData = new FormData();
+    formData.append('pId', k)
+    formData.append('format', this.state.patients.get(k).get(0).name.split('.').pop())
+
     this.state.patients.get(k).keys().forEach(t =>  formData.append(t, this.state.patients.get(k).get(t) ));
     var myData = { method: 'POST',
                   headers: myHeaders,

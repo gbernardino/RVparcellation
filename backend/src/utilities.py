@@ -1,6 +1,46 @@
 import vtk
 import numpy
 import os
+def numpy_to_vtk_faces(faces):
+    """
+    transform a list of lists of indices to a vtk cell
+    """
+    vtkCells = vtk.vtkCellArray()
+    for f in faces:
+        vtkCells.InsertNextCell(len(f))
+        for id in f:
+            vtkCells.InsertCellPoint(id)
+    return vtkCells
+
+def numpy_to_vtk(pointArray, faces = None, scalarFields = []):
+    """
+    Converst a mesh in numpy format to vtk.
+    Needs that pointArray is either a shape vector (p1x, p1y, p1z, p2x, p2y ....) or a matrix of shape nPoints x 3
+
+    """
+    pd = vtk.vtkPolyData()
+    
+    if len(pointArray.shape) > 1:
+        pointArray = pointArray.reshape(-1)
+    
+    points = vtk.vtkPoints()
+    for i in range(int(len(pointArray)/3)):
+        points.InsertNextPoint(pointArray[3*i],pointArray[3*i + 1], pointArray[3*i + 2])
+    pd.SetPoints(points)
+
+    if faces is not None and isinstance(faces, vtk.vtkCellArray):
+        pd.SetPolys(faces)
+
+    elif faces is not None:
+        vtkPolys = numpy_to_vtk_faces(faces)
+        pd.SetPolys(vtkPolys)
+
+    for i, s in enumerate(scalarFields):
+        add_scalar(pd, s, 'scalar_%d' % i)
+
+    return pd
+
+
 
 def vtk_to_numpy(vtkMesh, flatten = True, returnFaces = False, trianglesOnly = True):
     """
@@ -168,9 +208,9 @@ def convert_ucd_to_vtk(path, outputPath, toKeep = None, patientIdTransform = lam
             for i, l in enumerate(f.readlines()):
                 if i == 0:
                     nPoints, nFaces, _, _, _ = list(map(int, l.split()))
-                    points = np.zeros([nPoints, 3])
-                    triangles = np.zeros([nFaces, 3], dtype = np.uint16)
-                    pointData = np.zeros([nPoints, 2])
+                    points = numpy.zeros([nPoints, 3])
+                    triangles = numpy.zeros([nFaces, 3], dtype = numpy.uint16)
+                    pointData = numpy.zeros([nPoints, 2])
 
                     iFaces = 0
                     iPoints = 0

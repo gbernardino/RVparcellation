@@ -3,6 +3,8 @@ version: '3'
 services:
 
    backend:
+      env_file:
+         - ./backend.env
       build: ./backend
       expose:
          - ${APP_SERVER_PORT}
@@ -15,6 +17,8 @@ services:
          bash -c "python src/app.py & jupyter-lab  --ip=0.0.0.0 --no-browser"
    
    frontend:
+      env_file:
+         - ./frontend.env
       build: ./react-frontend-docker
       expose:
          - ${REACT_APP_PORT}

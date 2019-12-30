@@ -42,7 +42,9 @@ function StyledDropzone(props) {
     isDragActive,
     isDragAccept,
     isDragReject
-  } = useDropzone({onDrop});
+  } = useDropzone({onDrop : onDrop,
+                accept: '.vtk, .ucd'
+              });
   
   return (
     <div className="container">

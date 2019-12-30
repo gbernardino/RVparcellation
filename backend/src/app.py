@@ -1,4 +1,4 @@
-from flask import Flask, send_file
+from flask import Flask, send_file, jsonify
 from flask_restful import Resource, Api, request
 from flask_cors import CORS
 import sys, os, pathlib
@@ -9,7 +9,6 @@ CORS(app)
 
 @app.route('/computePartitionSingleIndividual', methods = [ 'POST'])
 def computePartitionSingleIndividual():
-    numFiles = len(request.files)
     pId = request.form['pId']
     format = request.form.get('format', 'vtk')
     print('pID =', pId, type(pId), file=sys.stderr)
@@ -17,9 +16,10 @@ def computePartitionSingleIndividual():
     folderPath.mkdir(parents=True, exist_ok=True)
     meshes = {}
     #Write files to the tmp folder
+    print('Format = ', format)
     for t in request.files:
         print(t)
-        path = str(folderPath / (pId + '_%3d' % t ) )
+        path = str(folderPath / (pId + '_%3d' % int(t) ) )
         request.files[t].save(path + '.' + format)
         meshes[t] = path + '.vtk'
     utilities.convert_ucd_to_vtk(folderPath, folderPath)
@@ -27,9 +27,13 @@ def computePartitionSingleIndividual():
     values = computeRegionalVolumeDynamics.computeEDVEF(meshes)
     #Return the computations (so far only the measurements, possibly return also the partitions (for ED and ES))
 
-    return {'outflowEDV' : values[0],'inletEDV' : values[1], 'apicalEDV' : values[2], 'outflowEF' : values[3],'inletEF' : values[4], 'apicalEF' : values[5]}
+    return jsonify({'outflowEDV' : values[0],'inletEDV' : values[1], 'apicalEDV' : values[2], 'outflowEF' : values[3],'inletEF' : values[4], 'apicalEF' : values[5]})
     #For returning files, see https://stackoverflow.com/questions/28568687/download-multiple-csvs-using-flask/41374226
     #return send_file(path, as_attachment=True)
+
+@app.route('/testGet', methods = [ 'GET'])
+def testGet():
+    return jsonify({'meow' : 'test'})
 
 
 @app.route('/getFile', methods = [ 'GET'])

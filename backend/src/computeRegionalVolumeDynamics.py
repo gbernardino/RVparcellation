@@ -13,7 +13,23 @@ def concatenateDict(*args):
         dRes.update(d)
     return dRes
 
+def set_consistent_normals(vtkMesh, splitting = False):
+    """
+    Checks that the orientation is consistent between all cells.
+    """
+    vtkNormals = vtk.vtkPolyDataNormals()
+    vtkNormals.SetSplitting(splitting)
+    vtkNormals.ConsistencyOn()
+    vtkNormals.SetInputData(vtkMesh)
+    vtkNormals.Update()
+    return vtkNormals.GetOutput()
 
+def compute_volume_vtk(vtkMesh, scale = 1e-3):
+
+    massProps = vtk.vtkMassProperties()
+    massProps.SetInputData(set_consistent_normals(vtkMesh))
+    massProps.Update()
+    return massProps.GetVolume() * scale
 
 
 def meshPartitionGeodesics(mesh, writePath, pointsPulmonary, pointsTricuspid, apexId):
@@ -139,6 +155,7 @@ def regionalEjectionFraction(volumes):
     ed_frame = 0
     es_frame = np.argmin(np.sum(volumes, axis =1))
     return (volumes[ed_frame, :] - volumes[es_frame, :])/volumes[ed_frame, :]
+
 def computeEDVEF(meshes):
     """
     Computes from a
@@ -149,17 +166,19 @@ def computeEDVEF(meshes):
     readIfString = lambda s: utilities.read_poly(s) if isinstance(s, str) else s
     meshes = {int(i): readIfString(m)  for i,m in meshes.items()}
     meshesList = [meshes[i] for i in range(len(meshes))]
-    volumes = []
-    for i, m in enumerate(meshesList):
-        if i == 0:
-            mesh_0 = meshPartitionGeodesics(m ,writePath = '/tmp/meshName', 
-                                            pointsPulmonary =anatomicLabels['pointsPulmonary'], 
-                                            pointsTricuspid =anatomicLabels['pointsTricuspid'],  
-                                            apexId = anatomicLabels['apexId'])
+    volumesTotal = np.array([ compute_volume_vtk(m) for m in meshesList])
+    es = np.argmin(volumesTotal)
+    ed = 0 
+    mesh_0 = meshPartitionGeodesics(meshesList[0] ,writePath = '/tmp/meshName', 
+                                    pointsPulmonary =anatomicLabels['pointsPulmonary'], 
+                                    pointsTricuspid =anatomicLabels['pointsTricuspid'],  
+                                    apexId = anatomicLabels['apexId'])
 
-        volumes.append(subVolumePartition(meshesList[i], 'meshName', '/tmp', vtkMeshTemplate = mesh_0, recompute = True))
-    volumes = np.array(volumes)
-    return np.concatenate([volumes[0], regionalEjectionFraction(volumes)])
+    volumesED = subVolumePartition(meshesList[ed], 'meshName', '/tmp', vtkMeshTemplate = mesh_0, recompute = True)
+    volumesES = subVolumePartition(meshesList[es], 'meshName', '/tmp', vtkMeshTemplate = mesh_0, recompute = True)
+    volumesED, volumesES = np.array(volumesED), np.array(volumesES)
+    volumesEF  =100 *  (volumesED - volumesES)/volumesES
+    return np.concatenate([volumesED, volumesEF])
 
 if __name__ == '__main__':
 

@@ -8,9 +8,9 @@
     "react-dropzone": "^10.1.6",
     "react-scripts": "3.0.1",
     "styled-components": "*",
-    "react-bootstrap":"*",
-    "react-circular-progressbar" : "*"
-    },
+    "react-bootstrap": "*",
+    "react-circular-progressbar": "*"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",

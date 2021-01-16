@@ -3,13 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "math-ds": "^1.2.1",
+    "mesh-geodesic": "*",
     "react": "^16.8.6",
+    "react-bootstrap": "*",
+    "react-circular-progressbar": "*",
     "react-dom": "^16.8.6",
     "react-dropzone": "^10.1.6",
+    "react-script-tag": "*",
     "react-scripts": "3.0.1",
-    "styled-components": "*",
-    "react-bootstrap": "*",
-    "react-circular-progressbar": "*"
+    "sparse-octree": "*",
+    "styled-components": "*"
   },
   "scripts": {
     "start": "react-scripts start",

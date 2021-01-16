@@ -4,6 +4,9 @@ import  { Button} from 'react-bootstrap';
 import './App.css';
 import StyledDropzone from './styledDropzone';
 import {CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import readUCD from './regionalVolumesSample/readUCD';
+import {doPartitionGeodesics, computeRegionalVolumeSampling} from './regionalVolumesSample/doPartitionGeodesics';
+
 class Dictionary{
   constructor() {
     this.data = {};
@@ -69,7 +72,8 @@ class MeshesList extends Dictionary {
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {patientsToCompute : new MeshesList(), numberToCompute : 1, numberComputed: 1, patientResults: []};
+    this.state = {patientsToCompute : new MeshesList(), numberToCompute : 1, numberComputed: 1, patientResults: [],  mode : 'local'};
+  
     this.addFiles = this.addFiles.bind(this);
     this.sendPatientFile = this.sendPatientFile.bind(this);   
     this.sendAllPatients = this.sendAllPatients.bind(this);   
@@ -97,36 +101,58 @@ class App extends React.Component {
       this.setState({numberComputed: this.state.numberComputed + 1})
       return
     }
-    console.log('Sending new patient')
-    var myHeaders = new Headers();
-    var formData = new FormData();
-    formData.append('pId', k)
-    var aux =  this.state.patientsToCompute.get(k).get(0).name.split('.').pop()
-    formData.append('format', aux)
-    this.state.patientsToCompute.get(k).keys().forEach(t =>  formData.append(t, this.state.patientsToCompute.get(k).get(t) ));
-    var myData = { method: 'POST',
-                  headers: myHeaders,
-                  mode: 'cors',
-                  body: formData
-                  };
-    var persistentData = this;
+    if (this.state.mode == 'docker' ) {
+      console.log('Sending new patient')
+      var myHeaders = new Headers();
+      var formData = new FormData();
+      formData.append('pId', k)
+      var aux =  this.state.patientsToCompute.get(k).get(0).name.split('.').pop()
+      formData.append('format', aux)
+      this.state.patientsToCompute.get(k).keys().forEach(t =>  formData.append(t, this.state.patientsToCompute.get(k).get(t) ));
+      var myData = { method: 'POST',
+                    headers: myHeaders,
+                    mode: 'cors',
+                    body: formData
+                    };
+      var persistentData = this;
 
-    fetch('http://localhost:5000/computePartitionSingleIndividual', myData)
-    .then(function(response) {
-      response.json().then(function(data) {
-        console.log(data);
-        let patientResults = persistentData.state.patientResults
-        let patientsToCompute = persistentData.state.patientsToCompute
-        patientResults.push([k, data.outflowEDV, data.inletEDV, data.apicalEDV, data.outflowEF, data.inletEF, data.apicalEF])
-        patientsToCompute.removeFile(k)
-        persistentData.setState({patientResults: patientResults, patientsToCompute : patientsToCompute, numberComputed: persistentData.state.numberComputed + 1})
-      
-        //Update the state
-        });
- 
-    });
+      fetch('http://localhost:5000/computePartitionSingleIndividual', myData)
+      .then(function(response) {
+        response.json().then(function(data) {
+          console.log(data);
+          let patientResults = persistentData.state.patientResults
+          let patientsToCompute = persistentData.state.patientsToCompute
+          patientResults.push([k, data.outflowEDV, data.inletEDV, data.apicalEDV, data.outflowEF, data.inletEF, data.apicalEF])
+          patientsToCompute.removeFile(k)
+          persistentData.setState({patientResults: patientResults, patientsToCompute : patientsToCompute, numberComputed: persistentData.state.numberComputed + 1})
+        
+          //Update the state
+          });
+  
+      });
+    }
+    else { 
+        //
+        var pId = k;
+        var aux =  this.state.patientsToCompute.get(k).get(0).name.split('.').pop();
+        var fullCycleFiles = Array();
+        this.state.patientsToCompute.get(k).keys().forEach(t =>  fullCycleFiles.push(this.state.patientsToCompute.get(k).get(t) ));
+        // read the meshes
+        //console.log(fullCycleFiles[0])
+        readUCD(fullCycleFiles[0]).then(doPartitionGeodesics).then(computeRegionalVolumeSampling)
+        // Use geometry processing to generate the geodesic distances
+
+                // DEBUGGING: download the files with the geodesic distances, to Compare
+
+        // Compute volumes from mean point
+
+        // Sample each tetrahedron according to its volume
+        
+        return
+
+    }
   }
-
+  
   sendAllPatients(){
     //TODO: Check that it is correct
       console.log(this.state.patientsToCompute.length)

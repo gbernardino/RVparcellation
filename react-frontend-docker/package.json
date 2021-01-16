@@ -14,6 +14,7 @@
     "react-scripts": "3.0.1",
     "sparse-octree": "*",
     "styled-components": "*"
+    "react-bootstrap": "*",
   },
   "scripts": {
     "start": "react-scripts start",

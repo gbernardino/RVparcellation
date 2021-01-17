@@ -32,30 +32,34 @@ class WeightedSample {
 };
 
 
+
 class MeshSampler {
     constructor(coordinates, triangles) {
         this.triangles = triangles;
         this.coordinates = coordinates
         // COMPUTE mean
-        let mean = new Vector3(0,0,0);
+        this.mean = new Vector3(0,0,0);
         for (let i = 0; i < this.coordinates.length; i++) {
-            mean.addScaledVector(this.coordinates[i], 1 /this.coordinates.length)
+            this.mean.addScaledVector(this.coordinates[i], 1 /this.coordinates.length)
         }
 
         this.absoluteVolumes = [];
         this.signedVolumes = [];
+        let totalVol = 0;
         for (let i = 0; i < this.triangles.length; i++) {
             let m = new Matrix3();
             let t = this.triangles[i]
             m.set(
-                this.coordinates[t[0]].x, this.coordinates[t[0]].y, this.coordinates[t[0]].z, 
-                this.coordinates[t[1]].x, this.coordinates[t[1]].y, this.coordinates[t[1]].z,
-                this.coordinates[t[2]].x, this.coordinates[t[2]].y, this.coordinates[t[2]].z,)
+                this.coordinates[t[0]].x - this.mean.x, this.coordinates[t[0]].y - this.mean.y, this.coordinates[t[0]].z - this.mean.z, 
+                this.coordinates[t[1]].x - this.mean.x, this.coordinates[t[1]].y - this.mean.y, this.coordinates[t[1]].z - this.mean.z, 
+                this.coordinates[t[2]].x - this.mean.x, this.coordinates[t[2]].y - this.mean.y, this.coordinates[t[2]].z- this.mean.z)
             let vol = m.determinant()/6;
+            totalVol += vol;
             this.absoluteVolumes.push(Math.abs(vol));
             this.signedVolumes.push(vol);
+            this.totalVol = totalVol;
         }
-
+        console.log(totalVol)
         this.sampler = new WeightedSample(this.absoluteVolumes)
     }
     getSample(){ 
@@ -63,13 +67,15 @@ class MeshSampler {
         let r1 = - Math.log(Math.random());
         let r2 = - Math.log(Math.random());
         let r3 = - Math.log(Math.random());
-        let R = r1 + r2 + r3;
+        let r4 = - Math.log(Math.random());
+        let R = r1 + r2 + r3 + r4;
         r1 /= R;
         r2 /= R;
         r3 /= R;
+        r4 /= R;
         var p = new Vector3(0,0,0);
         let t = this.triangles[i]
-        p.addScaledVector(this.coordinates[t[0]] , r1).addScaledVector(this.coordinates[t[1]], r2).addScaledVector(this.coordinates[t[2]], r3)
+        p.addScaledVector(this.coordinates[t[0]] , r1).addScaledVector(this.coordinates[t[1]], r2).addScaledVector(this.coordinates[t[2]], r3).addScaledVector(this.mean, r4)
         return {point :p , sign : Math.sign(this.signedVolumes[i])}
     }
 }

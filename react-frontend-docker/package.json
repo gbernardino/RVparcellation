@@ -13,8 +13,8 @@
     "react-script-tag": "*",
     "react-scripts": "3.0.1",
     "sparse-octree": "*",
-    "styled-components": "*"
-    "react-bootstrap": "*",
+    "styled-components": "*",
+    "rbf": "*"
   },
   "scripts": {
     "start": "react-scripts start",

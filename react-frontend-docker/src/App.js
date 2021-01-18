@@ -1,7 +1,19 @@
 import React from 'react';
 import logo from './logo.svg';
-import './App.css';
 import ComputationWindow from './computationWindow.js';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+} from "react-router-dom";
+
+import HomePage from './pages/homepage'
+import SettingsPage from './pages/settings'
+import VisualisationPage from './pages/visualisation'
+import AboutPage from './pages/about.jsx'
+import './styles/index.css';
+import SideBar from "./components/burgerMenu";
+
 
 class App extends React.Component {
   constructor(props) {
@@ -37,7 +49,30 @@ class App extends React.Component {
           Right ventricular parcellator.
         </header>
         <body>
-        <ComputationWindow addNewResult = {this.addNewResult} patientsComputed = {this.state.patientResults} />
+        <SideBar pageWrapId={"page-wrap"} outerContainerId={"App"} />
+
+        <div id="page-wrap">
+          <Router>
+            <Switch>
+              <Route exact path={["/", "/home"]}> 
+                <HomePage />
+              </Route>
+              <Route path="/computation">
+                    <ComputationWindow addNewResult = {this.addNewResult} patientsComputed = {this.state.patientResults} />
+              </Route>
+              <Route path="/about">
+                <AboutPage />
+              </Route>
+              <Route path="/visualisation">
+                <VisualisationPage />
+              </Route>
+              <Route path="/settings">
+                <SettingsPage />
+              </Route>
+            </Switch>
+          </Router>
+        </div>
+       
         </body>
       </div>
     );
@@ -46,6 +81,7 @@ class App extends React.Component {
 }
 
 export default App;
+
 /*<CircularProgressbar
 percentage={percentage}
 text={`${percentage.toFixed(2)}%`}

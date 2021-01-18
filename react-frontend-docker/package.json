@@ -14,7 +14,10 @@
     "react-scripts": "3.0.1",
     "sparse-octree": "*",
     "styled-components": "*",
-    "rbf": "*"
+    "rbf": "*",
+    "react-router-dom": "*",
+    "react-burger-menu": "*",
+    "awesome-react-icons": "*"
   },
   "scripts": {
     "start": "react-scripts start",

@@ -13,7 +13,7 @@ function minimum(v1, v2, n){
     return v;
 }
 function mapToArray(v, n){
-    let arr = Array()
+    let arr = [];
     for (let i = 0; i < n; i++){
         arr.push(v[i])
     }
@@ -45,7 +45,7 @@ export function doPartitionGeodesics(polygonSoup){
         dPulmonary = minimum(dPulmonary, geodesics(E, Varray,  pointsPulmonary[i]), V.length)
     }
     console.log(dPulmonary)
-    let res = new Object();
+    let res =  {};
     res.E = E;
     res.V = V;
     res.Varray = Varray;
@@ -55,7 +55,7 @@ export function doPartitionGeodesics(polygonSoup){
     return res;
 }
 export function copyPartition(polygonSoup, partition){
-    let newPartition = new Object();
+    let newPartition = {};
     newPartition.E = polygonSoup[1];
     newPartition.V = polygonSoup[0];
     let Varray = [];
@@ -102,7 +102,7 @@ let transpose = m => m[0].map((x,i) => m.map(x => x[i])) // https://stackoverflo
 export function computeRegionalVolumeSampling(mesh){
     let sampler = new MeshSampler(mesh.V, mesh.E)
     var nsamples;
-    if (mesh.nsamples == undefined) {
+    if (mesh.nsamples === undefined) {
         nsamples = 1000
     }
     else {
@@ -119,7 +119,7 @@ export function computeRegionalVolumeSampling(mesh){
 
     //var rbfA, rbfT, rbfP;
     var rbfAllSegments;
-    if (interpolationMethod == 'rbf') {
+    if (interpolationMethod === 'rbf') {
         rbfAllSegments = RBF(mesh.Varray, transpose([mesh.dA, mesh.dP, mesh.dT]), 'linear');
         //rbfA = RBF(mesh.Varray, mesh.dA, 'linear');
         //rbfP = RBF(mesh.Varray, mesh.dP, 'linear');
@@ -129,12 +129,10 @@ export function computeRegionalVolumeSampling(mesh){
     for (let i = 0; i < nsamples; i ++)
     {
         let p = sampler.getSample();
-        let res = octtree.findNearestPoint(p.point);
-        let iPoint = res.data;
 
         // Get the counts  --- we can actually precompute the partition...
         var daa, dpp, dtt;
-        if (interpolationMethod == 'nearest') {
+        if (interpolationMethod === 'nearest') {
             let res = octtree.findNearestPoint(p.point);
             let iPoint = res.data;
             daa = mesh.dA[iPoint];
@@ -156,7 +154,7 @@ export function computeRegionalVolumeSampling(mesh){
                 dtt = d[2];
     
             }
-            if (debug && i % 100 == 0){
+            if (debug && i % 100 === 0){
                 console.log(daa, dpp, dtt)
             }
         }

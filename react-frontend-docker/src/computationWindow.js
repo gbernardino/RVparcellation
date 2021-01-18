@@ -1,12 +1,11 @@
 import React from 'react';
 import  { Button} from 'react-bootstrap';
-import './App.css';
 import StyledDropzone from './styledDropzone';
-import {CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import {CircularProgressbar } from 'react-circular-progressbar';
 import {volume, readUCD} from './regionalVolumesSample/readUCD';
 import {doPartitionGeodesics, computeRegionalVolumeSampling, copyPartition} from './regionalVolumesSample/doPartitionGeodesics';
-import {Dictionary, MeshesList} from './dataStructures';
-
+import {MeshesList} from './dataStructures';
+import "./styles/index.css"
 
   
 class ComputationWindow extends React.Component {
@@ -36,17 +35,17 @@ class ComputationWindow extends React.Component {
       /*
       WARNING: not sure how this handles concurent accesses... better work one by one.
       */
-      if (this.state.patientsToCompute.get(k).keys().length != (1 + Math.max(...this.state.patientsToCompute.get(k).keys()))) {
+      if (this.state.patientsToCompute.get(k).keys().length !== (1 + Math.max(...this.state.patientsToCompute.get(k).keys()))) {
         this.setState({numberComputed: this.state.numberComputed + 1})
         return
       }
-  
-      if (this.state.mode == 'docker' ) {
+      var aux =  this.state.patientsToCompute.get(k).get(0).name.split('.').pop();
+
+      if (this.state.mode === 'docker' ) {
         console.log('Sending new patient')
         var myHeaders = new Headers();
         var formData = new FormData();
         formData.append('pId', k)
-        var aux =  this.state.patientsToCompute.get(k).get(0).name.split('.').pop()
         formData.append('format', aux)
         this.state.patientsToCompute.get(k).keys().forEach(t =>  formData.append(t, this.state.patientsToCompute.get(k).get(t) ));
         var myData = { method: 'POST',
@@ -67,9 +66,8 @@ class ComputationWindow extends React.Component {
         });
       }
       else { 
-          var aux =  this.state.patientsToCompute.get(k).get(0).name.split('.').pop();
           let global = this;
-          var fullCycleFiles = Array();
+          var fullCycleFiles = [];
           this.state.patientsToCompute.get(k).keys().forEach(t =>  fullCycleFiles.push(this.state.patientsToCompute.get(k).get(t) )); // This can prob be simplified...
           // read the meshes
           //console.log(fullCycleFiles[0])
@@ -85,7 +83,7 @@ class ComputationWindow extends React.Component {
                 }
               }
               console.log('iMin', iMinVol)
-              let newResult = new Object();
+              let newResult = {};
               newResult.ED = results[0];
               newResult.ES = results[iMinVol];
               return newResult;
@@ -148,11 +146,13 @@ class ComputationWindow extends React.Component {
       return (
         <div className="Computation">
             <aside>
-            {this.state.numberComputed == this.state.numberToCompute ?
+            {this.state.numberComputed === this.state.numberToCompute ?
               ( <div> 
                 <StyledDropzone onDrop={this.addFiles } />
-                <Button variant="primary" onClick={this.sendAllPatients}> Parcellate!  </Button>
-                <Button variant="primary" disabled= {this.state.numberComputed != this.state.numberToCompute} onClick={this.generateAndDownload}> Download CSV</Button>
+                <Button variant="dark" onClick={this.sendAllPatients} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"> 
+                Parcellate!  </Button>
+                <Button variant="dark" disabled= {this.state.numberComputed !== this.state.numberToCompute} onClick={this.generateAndDownload} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                   Download CSV</Button>
 
                 </div>
               )

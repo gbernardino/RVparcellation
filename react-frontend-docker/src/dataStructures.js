@@ -8,7 +8,10 @@ export class Dictionary{
         return this.data[k]
       }
       else if (this.data[k] === undefined) { 
-        throw `key: '${k}' not in dictionary`;
+        throw  Object.assign(
+          new Error('${k} not in dictionary'),
+          { code: 400 }
+       );
       }
       else {
         return this.data[k]
@@ -55,7 +58,7 @@ export class Dictionary{
   
     isOK() {
       //Returns OK if the files is complete: ie, if there are all the frames from 0 to max
-      return  this.keys().every(k => this.get(k).keys() == Math.max(...this.get(k).keys()) );
+      return  this.keys().every(k => this.get(k).keys() === Math.max(...this.get(k).keys()) );
       }
   }
   

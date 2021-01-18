@@ -103,7 +103,7 @@ export function computeRegionalVolumeSampling(mesh){
     let sampler = new MeshSampler(mesh.V, mesh.E)
     var nsamples;
     if (mesh.nsamples == undefined) {
-        nsamples = 10000
+        nsamples = 1000
     }
     else {
         nsamples = mesh.nsamples

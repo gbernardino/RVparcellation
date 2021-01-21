@@ -63,7 +63,7 @@ class App extends React.Component {
                 <AboutPage />
               </Route>
               <Route path="/visualisation">
-                <VisualisationPage />
+                <VisualisationPage  patientsComputed = {this.state.patientResults} />
               </Route>
               <Route path="/settings">
                 <SettingsPage />

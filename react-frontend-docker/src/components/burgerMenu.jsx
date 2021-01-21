@@ -6,10 +6,10 @@ export default props => {
     // Pass on our props
     <Menu {...props}>
         <Link to="/">Home</Link>
-        <Link to="/computation">computation</Link>
-        <Link to="/visualisation">visualisation</Link>
-        <Link to="/settings">settings</Link>
-        <Link to="/about">about</Link>
+        <Link to="/computation">Computation</Link>
+        <Link to="/visualisation">Visualisation</Link>
+        <Link to="/settings">Settings</Link>
+        <Link to="/about">About</Link>
 
 
     </Menu>

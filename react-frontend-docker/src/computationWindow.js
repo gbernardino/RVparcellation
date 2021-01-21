@@ -165,7 +165,6 @@ class ComputationWindow extends React.Component {
                     minValue={0}
                     text={`${this.state.numberComputed}/${this.state.numberToCompute}`}
                     />
-                    <img  title="Our oompa loompa is processing. Please wait." src={require('./public/processing.gif')} alt="loading..."  align="middle" />
                 </div>
               )
             }

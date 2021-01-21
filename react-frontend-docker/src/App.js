@@ -2,11 +2,10 @@ import React from 'react';
 import logo from './logo.svg';
 import ComputationWindow from './computationWindow.js';
 import {
-  BrowserRouter as Router,
+  HashRouter as Router,
   Switch,
   Route,
 } from "react-router-dom";
-
 import HomePage from './pages/homepage'
 import SettingsPage from './pages/settings'
 import VisualisationPage from './pages/visualisation'
@@ -49,10 +48,10 @@ class App extends React.Component {
           Right ventricular parcellator.
         </header>
         <body>
+        <Router  basename="/">
         <SideBar pageWrapId={"page-wrap"} outerContainerId={"App"} />
 
         <div id="page-wrap">
-          <Router>
             <Switch>
               <Route exact path={["/", "/home"]}> 
                 <HomePage />
@@ -70,8 +69,8 @@ class App extends React.Component {
                 <SettingsPage />
               </Route>
             </Switch>
-          </Router>
         </div>
+        </Router>
        
         </body>
       </div>

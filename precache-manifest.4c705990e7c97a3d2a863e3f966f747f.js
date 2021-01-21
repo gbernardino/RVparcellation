@@ -1,10 +1,10 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "782ddce3563383b59666bbd046ae853a",
+    "revision": "3ddbbc18016c4a33d00bb0dd1235cf54",
     "url": "/RVparcellation/index.html"
   },
   {
-    "revision": "d2de068971516a9b82b9",
+    "revision": "ee0dcca171fa0e31d9b8",
     "url": "/RVparcellation/static/css/main.f74a81ad.chunk.css"
   },
   {
@@ -12,8 +12,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/RVparcellation/static/js/2.d6e4900d.chunk.js"
   },
   {
-    "revision": "d2de068971516a9b82b9",
-    "url": "/RVparcellation/static/js/main.26b04708.chunk.js"
+    "revision": "ee0dcca171fa0e31d9b8",
+    "url": "/RVparcellation/static/js/main.17a45319.chunk.js"
   },
   {
     "revision": "b03ba58bc87f0d279d9c",

@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.css": "/rvParcellation/static/css/main.f74a81ad.chunk.css",
-    "main.js": "/rvParcellation/static/js/main.d255c591.chunk.js",
-    "main.js.map": "/rvParcellation/static/js/main.d255c591.chunk.js.map",
-    "runtime~main.js": "/rvParcellation/static/js/runtime~main.9600060d.js",
-    "runtime~main.js.map": "/rvParcellation/static/js/runtime~main.9600060d.js.map",
-    "static/js/2.d706b1d7.chunk.js": "/rvParcellation/static/js/2.d706b1d7.chunk.js",
-    "static/js/2.d706b1d7.chunk.js.map": "/rvParcellation/static/js/2.d706b1d7.chunk.js.map",
-    "index.html": "/rvParcellation/index.html",
-    "precache-manifest.80d9d3628dd2c2186799e359770621dd.js": "/rvParcellation/precache-manifest.80d9d3628dd2c2186799e359770621dd.js",
-    "service-worker.js": "/rvParcellation/service-worker.js",
-    "static/css/main.f74a81ad.chunk.css.map": "/rvParcellation/static/css/main.f74a81ad.chunk.css.map",
-    "static/media/logo.svg": "/rvParcellation/static/media/logo.5d5d9eef.svg",
-    "static/media/processing.gif": "/rvParcellation/static/media/processing.529e8cb8.gif"
+    "main.css": "/RVparcellation/static/css/main.f74a81ad.chunk.css",
+    "main.js": "/RVparcellation/static/js/main.dd6809aa.chunk.js",
+    "main.js.map": "/RVparcellation/static/js/main.dd6809aa.chunk.js.map",
+    "runtime~main.js": "/RVparcellation/static/js/runtime~main.bfa7f08c.js",
+    "runtime~main.js.map": "/RVparcellation/static/js/runtime~main.bfa7f08c.js.map",
+    "static/js/2.53a45a50.chunk.js": "/RVparcellation/static/js/2.53a45a50.chunk.js",
+    "static/js/2.53a45a50.chunk.js.map": "/RVparcellation/static/js/2.53a45a50.chunk.js.map",
+    "index.html": "/RVparcellation/index.html",
+    "precache-manifest.5c856c1c654233d5558f51a4bfc30df2.js": "/RVparcellation/precache-manifest.5c856c1c654233d5558f51a4bfc30df2.js",
+    "service-worker.js": "/RVparcellation/service-worker.js",
+    "static/css/main.f74a81ad.chunk.css.map": "/RVparcellation/static/css/main.f74a81ad.chunk.css.map",
+    "static/media/logo.svg": "/RVparcellation/static/media/logo.5d5d9eef.svg",
+    "static/media/processing.gif": "/RVparcellation/static/media/processing.529e8cb8.gif"
   }
 }

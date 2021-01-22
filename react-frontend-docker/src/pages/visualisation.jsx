@@ -2,18 +2,17 @@
 // three js fiber (react version of three js)
 import ReactDOM from 'react-dom'
 import React, { Suspense , useState, useRef, useEffect } from 'react'
-import { Canvas } from 'react-three-fiber'
+import { Canvas, MeshNormalMaterial } from 'react-three-fiber'
 import { OrbitControls, TrackballControls} from 'drei'
 import * as THREE from "three";
 
 
 function RightVentricleMesh(props) {
-  const mesh = useRef()
   //console.log(props.rv)
   
   //const vertices = useMemo(() => props.rv[7].V.map(v => new THREE.Vector3(v.x, v.y, v.z)), [])
   //const faces = useMemo(() => props.rv[7].E.map(f => new THREE.Face3(...f)), [])
-
+  const mesh = useRef()
 
   const geometry = new THREE.Geometry();
   for (let i = 0; i < props.rv[7].V.length; i++) {
@@ -25,15 +24,15 @@ function RightVentricleMesh(props) {
 
   geometry.computeBoundingSphere();  
   geometry.center();
+  geometry.computeFaceNormals();
+  let material = new THREE.MeshNormalMaterial({color: 0x7777ff}) 
   const edges = new THREE.EdgesGeometry( geometry );
   const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0xffffff } ) );
-    return (
-    <mesh ref={mesh} geometry={geometry}> 
-      {/*<geometry attach="geometry" vertices={vertices} faces={faces} onUpdate={self => self.computeFaceNormals()} /> */}
-      <meshStandardMaterial color={'#820263'}  />
+  
+  return (
+    <mesh ref={mesh} geometry={geometry} material={material}>
     </mesh>
   )
-
 }
 
 
@@ -69,11 +68,11 @@ const VisualisationPage = (props ) => {
     let sphere = mesh.props.geometry.boundingSphere;
     return (
       <div align="middle">
-      <Canvas  style={{height: state.height, width:'95%', textAlign:'center', background: '#D3D3D3'}} camera={{ position: [0, 0, -3 * sphere.radius], far: 5 * sphere.radius}}>
-        <ambientLight />
-        <Suspense>
+      <Canvas   style={{height: state.height, width:'95%', textAlign:'center', background: '#D3D3D3'}} camera={{ position: [0, 0, -3 * sphere.radius], far: 5 * sphere.radius}}>
+        <directionalLight />
+        <Suspense fallback={null}>
         {mesh}
-        </Suspense>
+        </Suspense >
         <TrackballControls  rotateSpeed={4} />
       </Canvas>
       </div>

@@ -29,7 +29,6 @@ export function doPartitionGeodesics(polygonSoup){
     }
 
     let d = geodesics(E, Varray,  0);
-    console.log(d);
 
     let apexId = 906;
     let pointsTricuspid = [388, 389, 392, 393, 144, 540, 145, 538, 539, 422, 423, 38, 541, 49, 55, 328, 329, 332, 333, 87, 94, 100, 101, 103, 104, 105, 122, 123, 126, 127];
@@ -44,7 +43,6 @@ export function doPartitionGeodesics(polygonSoup){
     for (let i = 1; i < pointsPulmonary.length; i++) {
         dPulmonary = minimum(dPulmonary, geodesics(E, Varray,  pointsPulmonary[i]), V.length)
     }
-    console.log(dPulmonary)
     let res =  {};
     res.E = E;
     res.V = V;
@@ -103,7 +101,7 @@ export function computeRegionalVolumeSampling(mesh){
     let sampler = new MeshSampler(mesh.V, mesh.E)
     var nsamples;
     if (mesh.nsamples === undefined) {
-        nsamples = 1000
+        nsamples = 1
     }
     else {
         nsamples = mesh.nsamples
@@ -121,10 +119,6 @@ export function computeRegionalVolumeSampling(mesh){
     var rbfAllSegments;
     if (interpolationMethod === 'rbf') {
         rbfAllSegments = RBF(mesh.Varray, transpose([mesh.dA, mesh.dP, mesh.dT]), 'linear');
-        //rbfA = RBF(mesh.Varray, mesh.dA, 'linear');
-        //rbfP = RBF(mesh.Varray, mesh.dP, 'linear');
-        //rbfT = RBF(mesh.Varray, mesh.dT, 'linear');
-        console.log(rbfAllSegments)
     }
     for (let i = 0; i < nsamples; i ++)
     {

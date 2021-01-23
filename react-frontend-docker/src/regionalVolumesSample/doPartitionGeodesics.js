@@ -134,20 +134,12 @@ export function computeRegionalVolumeSampling(mesh){
             dtt = mesh.dT[iPoint];
         }
         else {
-            if (false) {
-                /*
-                daa = rbfA([p.point.x, p.point.y, p.point.z])
-                dpp = rbfP([p.point.x, p.point.y, p.point.z])
-                dtt = rbfT([p.point.x, p.point.y, p.point.z])
-                */
-            }
-            else{
-                let d = rbfAllSegments([p.point.x, p.point.y, p.point.z])
-                daa = d[0];
-                dpp = d[1];
-                dtt = d[2];
+
+            let d = rbfAllSegments([p.point.x, p.point.y, p.point.z])
+            daa = d[0];
+            dpp = d[1];
+            dtt = d[2];
     
-            }
             if (debug && i % 100 === 0){
                 console.log(daa, dpp, dtt)
             }

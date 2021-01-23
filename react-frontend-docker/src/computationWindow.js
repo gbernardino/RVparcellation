@@ -122,10 +122,11 @@ class ComputationWindow extends React.Component {
       var columnNames = items.join(";");
       csvContent += columnNames + "\r\n";
       this.props.patientsComputed.forEach(function (item, index) {
-        for (var i = 1; i < item.length; i++) {
-          item[i] = Number(item[i]).toFixed(3)
+        var rowInteger = new Array(items.length)
+        for (var i = 1; i < items.length; i++) {
+          rowInteger[i] = Number(item[i]).toFixed(3)
         }
-        let row = item.join(";");
+        let row = rowInteger.join(";");
         csvContent += row + "\r\n";
       });
   

@@ -13,6 +13,7 @@ function RightVentricleMesh(props) {
   //const vertices = useMemo(() => props.rv[7].V.map(v => new THREE.Vector3(v.x, v.y, v.z)), [])
   //const faces = useMemo(() => props.rv[7].E.map(f => new THREE.Face3(...f)), [])
   const mesh = useRef()
+  const wireframe = useRef()
 
   const geometry = new THREE.Geometry();
   for (let i = 0; i < props.rv[7].V.length; i++) {
@@ -20,18 +21,44 @@ function RightVentricleMesh(props) {
   }
   for (let i = 0; i < props.rv[7].E.length; i++) {
     geometry.faces.push(new THREE.Face3(...props.rv[7].E[i]))
+
+    // Add coloring according to closest point
+    for (let j = 0; j < 3; j++){
+      var color;
+      var ii = props.rv[7].E[i][j]
+      if (props.rv[7].dA[ii] < props.rv[7].dP[ii] && props.rv[7].dA[ii] < props.rv[7].dT[ii]) {
+        color = new THREE.Color(0xf8521)
+      }
+      else if ( props.rv[7].dT[ii] < props.rv[7].dP[ii]) {
+        color = new THREE.Color(0x0f4285)
+      }
+      else{
+        color = new THREE.Color(0x85180f)
+      }
+  
+      geometry.faces[i].vertexColors[j] = color;
+  
+    }
   }
 
   geometry.computeBoundingSphere();  
   geometry.center();
+    
+  props.radius.current.radius = geometry.boundingSphere.radius;
+  let material = new THREE.MeshStandardMaterial({vertexColors:THREE.VertexColors}) 
+
+// wireframe
+  var geoWireframe = new THREE.WireframeGeometry( geometry ); // or WireframeGeometry
+  var matWireframe = new THREE.LineBasicMaterial( { color: 0x0, linewidth: 5, polygonOffset : true, polygonOffsetFactor: 2, polygonOffsetUnits: 1} );
+
   geometry.computeFaceNormals();
-  let material = new THREE.MeshNormalMaterial({color: 0x7777ff}) 
-  const edges = new THREE.EdgesGeometry( geometry );
-  const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0xffffff } ) );
-  
+
   return (
-    <mesh ref={mesh} geometry={geometry} material={material}>
-    </mesh>
+    <group>
+       <mesh ref={mesh} geometry={geometry} material={material}/ >
+       <lineSegments ref={wireframe} geometry={geoWireframe} material={matWireframe}/ >
+
+    </group>
   )
 }
 
@@ -39,6 +66,7 @@ function RightVentricleMesh(props) {
 const VisualisationPage = (props ) => {
   //Add a selector of which mesh
   const [state, setState] = useState({height: window.innerHeight *0.8})
+  let radius = React.useRef([])
 
   useEffect(() => {
     // Handler to call on window resize
@@ -64,12 +92,11 @@ const VisualisationPage = (props ) => {
     return (<div>You need to compute some results before being able to display.</div>);
   }
   else {
-    let mesh= RightVentricleMesh({rv: props.patientsComputed[0]});
-    let sphere = mesh.props.geometry.boundingSphere;
+    let mesh= RightVentricleMesh({rv: props.patientsComputed[0], radius: radius});
     return (
       <div align="middle">
-      <Canvas   style={{height: state.height, width:'95%', textAlign:'center', background: '#D3D3D3'}} camera={{ position: [0, 0, -3 * sphere.radius], far: 5 * sphere.radius}}>
-        <directionalLight />
+      <Canvas   style={{height: state.height, width:'95%', textAlign:'center', background: '#D3D3D3'}} camera={{ position: [0, 0, -3 * radius.current.radius], far: 5 * radius.current.radius}}>
+        <ambientLight />
         <Suspense fallback={null}>
         {mesh}
         </Suspense >

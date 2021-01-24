@@ -19,6 +19,7 @@
     "react-script-tag": "*",
     "react-scripts": "3.0.1",
     "react-three-fiber": "^5.3.14",
+    "semantic-ui-react": "^2.0.3",
     "sparse-octree": "*",
     "styled-components": "*",
     "three": "^0.124.0"

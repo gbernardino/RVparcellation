@@ -35,6 +35,7 @@ class ComputationWindow extends React.Component {
       /*
       WARNING: not sure how this handles concurent accesses... better work one by one.
       */
+     var t1 = Date.now()
       if (this.state.patientsToCompute.get(k).keys().length !== (1 + Math.max(...this.state.patientsToCompute.get(k).keys()))) {
         this.setState({numberComputed: this.state.numberComputed + 1})
         return
@@ -69,10 +70,10 @@ class ComputationWindow extends React.Component {
           let global = this;
           var fullCycleFiles = [];
           this.state.patientsToCompute.get(k).keys().forEach(t =>  fullCycleFiles.push(this.state.patientsToCompute.get(k).get(t) )); // This can prob be simplified...
-          // read the meshes
-          //console.log(fullCycleFiles[0])
           Promise.all(fullCycleFiles.map(readUCD)).then(
-            function(results) {
+            function(results){
+              var t2 = Date.now()
+              console.log('Time parsing files', t2 - t1)
               var iMinVol = -1;
               var totalVol = 1e20;
               for (let i = 1; i < results.length; i++ ) {
@@ -86,7 +87,10 @@ class ComputationWindow extends React.Component {
               let newResult = {};
               newResult.ED = results[0];
               newResult.ES = results[iMinVol];
+              console.log( 'Selecting ES =', Date.now() - t2)
+
               return newResult;
+              
             }).then(
               function(results){
                 let partitionED = doPartitionGeodesics(results.ED);
@@ -99,6 +103,7 @@ class ComputationWindow extends React.Component {
                 let patientsToCompute = global.state.patientsToCompute
                 patientsToCompute.removeFile(k)
                 global.setState({patientsToCompute : patientsToCompute, numberComputed: global.state.numberComputed + 1})
+                console.log( 'Total patient processing time =', Date.now() - t1)
               }
             )        
           return

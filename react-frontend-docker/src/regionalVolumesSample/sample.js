@@ -2,7 +2,7 @@ import {Vector3, Matrix3} from 'math-ds'
 
 function dicotomicSearch(k, v, i_begin, i_last,) {
     let i_mid = Math.floor((i_begin + i_last ) /2);
-    if (v[i_begin] <= k && ((i_begin + 1== v.length)  ||  v[i_begin +1] >= k))
+    if (v[i_begin] <= k && ((i_begin + 1 === v.length)  ||  v[i_begin +1] >= k))
     {
         return i_begin
     }

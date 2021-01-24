@@ -17,7 +17,7 @@ function parseUCD(text) {
     }
     for (let i = 0; i < nCells; i ++) {
         let line = lines[nLine].split(/ +/)
-        if (line[2] != 'tri') {
+        if (line[2] !== 'tri') {
             console.log(lines[nLine], nLine, firstLine)
             throw('UCD has non-triangle face')
         }

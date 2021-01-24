@@ -1,5 +1,4 @@
 import React from 'react';
-import logo from './logo.svg';
 import ComputationWindow from './computationWindow.js';
 import {
   HashRouter as Router,
@@ -45,7 +44,7 @@ class App extends React.Component {
     return (
       <div className="App">
         <header className="App-header">
-          Right ventricular parcellator.
+          Right ventricle parcellation
         </header>
         <body>
         <Router  basename="/">

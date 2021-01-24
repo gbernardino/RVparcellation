@@ -9,7 +9,7 @@ export class Dictionary{
       }
       else if (this.data[k] === undefined) { 
         throw  Object.assign(
-          new Error('${k} not in dictionary'),
+          new Error('{k} not in dictionary'),
           { code: 400 }
        );
       }

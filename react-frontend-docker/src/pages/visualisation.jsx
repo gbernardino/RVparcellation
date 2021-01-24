@@ -143,7 +143,17 @@ const VisualisationPage = (props ) => {
       <h2> Measurements </h2>
       {
         (patientSelected  !== undefined)
-        ? <div>Here should be a table with measurements  </div>
+        ? <table>
+        <tbody>
+        <tr><td>RVOT EDV </td>  {(props.patientsComputed[patientSelected][1] /1e3).toFixed(1) }</tr>
+        <tr><td>Inlet EDV</td>  {(props.patientsComputed[patientSelected][2] /1e3).toFixed(1)}</tr>
+        <tr><td>Apical EDV</td> {(props.patientsComputed[patientSelected][3] /1e3).toFixed(1)}</tr>
+        <tr><td>RVOT EF </td>   {(props.patientsComputed[patientSelected][4] ).toFixed(1)}</tr>
+        <tr><td>Inlet EF</td>   {(props.patientsComputed[patientSelected][5] ).toFixed(1)}</tr>
+        <tr><td>Apical EF</td>  {(props.patientsComputed[patientSelected][6] ).toFixed(1)}</tr>
+
+        </tbody>
+        </table>
         : <div> Select a patient for displaying here the measurements</div>
 
       }

@@ -4,7 +4,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "awesome-react-icons": "*",
     "drei": "^2.2.17",
     "math-ds": "^1.2.1",
     "mesh-geodesic": "*",
@@ -16,10 +15,10 @@
     "react-dom": "^17.0.0",
     "react-dropzone": "^10.1.6",
     "react-router-dom": "*",
-    "react-script-tag": "*",
     "react-scripts": "3.0.1",
+    "react-select": "^4.0.2",
+    "react-split-pane": "^0.1.92",
     "react-three-fiber": "^5.3.14",
-    "semantic-ui-react": "^2.0.3",
     "sparse-octree": "*",
     "styled-components": "*",
     "three": "^0.124.0"

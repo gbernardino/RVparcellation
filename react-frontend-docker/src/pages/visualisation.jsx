@@ -4,8 +4,8 @@ import React, { Suspense , useState, useRef, useEffect } from 'react'
 import { Canvas} from 'react-three-fiber'
 import { TrackballControls} from 'drei'
 import * as THREE from "three";
-import { Dropdown } from 'semantic-ui-react';
-
+import Select from 'react-select'
+import SplitPane, { Pane } from 'react-split-pane';
 
 const  RightVentricleMesh = (props) => {
   //console.log(props.rv)
@@ -20,10 +20,10 @@ const  RightVentricleMesh = (props) => {
 
   const geometry = new THREE.Geometry();
   for (let i = 0; i < mesh.V.length; i++) {
-    geometry.vertices.push(new THREE.Vector3(...props.rv[7].Varray[i]))
+    geometry.vertices.push(new THREE.Vector3(...mesh.Varray[i]))
   }
   for (let i = 0; i < mesh.E.length; i++) {
-    geometry.faces.push(new THREE.Face3(...props.rv[7].E[i]))
+    geometry.faces.push(new THREE.Face3(...mesh.E[i]))
 
     // Add coloring according to closest point
     for (let j = 0; j < 3; j++){
@@ -106,34 +106,56 @@ const MeshDisplayCanvas = (props ) => {
 
 
 const VisualisationPage = (props ) => {
-    const [selected, setSelected] = useState(undefined);
-    let patientsOption = props.patientsComputed.map(
+    const [patientSelected, setPatientSelected] = useState();
+    const [phaseSelected, setPhaseSelected] = useState();
+
+    const patientsOption = props.patientsComputed.map(
       (p, index) => { 
-        return { key: p[0], value: index, text: p[0] };
+        return { value: index, label: p[0] };
       }
     )
+    const phaseOptions = [{value: 'ED', label: 'End-diastole'}, {value: 'ES', label: 'End-systole'}];
 
     return (
       <div align="middle">
+      <SplitPane split="vertical" minSize={100} defaultSize={200} primary="first">
       <div>
-        <Dropdown
-              placeholder='Select patient'
-              fluid
-              search
-              selection
+        <h3> Select patient</h3>
+        <Select
               options={patientsOption}
-              onSelectedChange={setSelected}
+              onChange={(v) => {
+                setPatientSelected(v.value)
+                console.log(patientSelected, v)
+              } 
+            }
         />
-        <div>
-          <input type="radio" value="ED" name="phase" /> End-diastole
-          <input type="radio" value="ES" name="phase" /> End-systole
-        </div>
+        <h3> Select phase</h3>
+
+ 
+        <Select
+                  className="basic-single"
+                  classNamePrefix="select"
+              options={phaseOptions}
+              onChange={(v) => {setPhaseSelected(v.value)
+              console.log(phaseSelected, v)
+             } }
+        />
+      <h2> Measurements </h2>
+      {
+        (patientSelected  !== undefined)
+        ? <div>Here should be a table with measurements  </div>
+        : <div> Select a patient for displaying here the measurements</div>
+
+      }
+
       </div>
 
-      { selected  !== undefined 
-        ? <MeshDisplayCanvas mesh = {props.patientsComputed[selected][7]} />
+
+      { (patientSelected  !== undefined  && phaseSelected !== undefined)
+        ? <MeshDisplayCanvas mesh = {props.patientsComputed[patientSelected][phaseSelected === 'ED' ? 7 : 8 ]}  />
         : <div> No patient selected to display. </div>
-      }   
+      }
+      </SplitPane>   
       </div>
     )
   }

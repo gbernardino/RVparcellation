@@ -67,6 +67,10 @@ ul{
   list-style-type: none;
  }
 
+.button {
+  font-size: 18px;
+}
+
 
  /*
  * react-circular-progressbar styles

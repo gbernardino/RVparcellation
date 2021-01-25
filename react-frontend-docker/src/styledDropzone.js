@@ -50,7 +50,7 @@ function StyledDropzone(props) {
     <div className="container">
       <Container {...getRootProps({isDragActive, isDragAccept, isDragReject})}>
         <input {...getInputProps()} />
-        <p>Drag 'n' drop some VTK files here, or click to select files</p>
+        <p>Drag 'n' drop some UCD files here, or click to select files</p>
       </Container>
     </div>
   );

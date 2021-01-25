@@ -6,7 +6,7 @@ import {volume, readUCD} from './regionalVolumesSample/readUCD';
 import {doPartitionGeodesics, computeRegionalVolumeSampling, copyPartition} from './regionalVolumesSample/doPartitionGeodesics';
 import {MeshesList} from './dataStructures';
 import "./styles/index.css"
-
+import {Link} from 'react-router-dom'
   
 class ComputationWindow extends React.Component {
     constructor(props) {
@@ -155,11 +155,15 @@ class ComputationWindow extends React.Component {
             {this.state.numberComputed === this.state.numberToCompute ?
               ( <div> 
                 <StyledDropzone onDrop={this.addFiles } />
-                <Button variant="dark" onClick={this.sendAllPatients} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"> 
+                <Button variant="dark" onClick={this.sendAllPatients} style = {{fontSize: 18}}> 
                 Parcellate!  </Button>
-                <Button variant="dark" disabled= {this.state.numberComputed !== this.state.numberToCompute} onClick={this.generateAndDownload} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <Button variant="dark" disabled= {this.state.numberComputed !== this.state.numberToCompute} onClick={this.generateAndDownload} style = {{fontSize: 18}}>
                    Download CSV</Button>
-
+                <Link to="/visualisation">
+                    <button type="button" style = {{fontSize: 18}}>
+                          Visualisation
+                    </button>
+                </Link>
                 </div>
               )
               :

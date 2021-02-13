@@ -107,17 +107,12 @@ void countInterpolation(const int nNodes, double * points, double * dA, double *
         f(i, 2) = dT[i];
 
     }
-
-
     double * Kx_array = (double *) malloc(nNodes * nNodes * sizeof(double));
     double * dm = (double *) malloc(nNodes * nSamples * sizeof(double));
-    auto copy = std::chrono::high_resolution_clock::now();
-    std::cout << "Copy" <<std::chrono::duration_cast<milli>(copy - start).count() << std::endl;
     RBF rbf(points, Kx_array, nNodes, f);
 
     Eigen::MatrixXd fy = rbf.predict(sampleCoordinates, dm, nSamples);
     auto interpolate = std::chrono::high_resolution_clock::now();
-    std::cout << "interpolate: " << std::chrono::duration_cast<milli>(interpolate - copy).count() << std::endl;
 
     for (i =0; i < 3; ++i) 
         count[i] = 0;
@@ -135,8 +130,9 @@ void countInterpolation(const int nNodes, double * points, double * dA, double *
         count[closest] += signSamples[i];
     }
     auto countTime = std::chrono::high_resolution_clock::now();
-    std::cout << "Total " <<  std::chrono::duration_cast<milli>(countTime - start).count()  << std::endl;
-
+    std::cout << "Total wo memory " <<  std::chrono::duration_cast<milli>(countTime - start).count()  << std::endl;
+    free(dm);
+    free(Kx_array);
 
 }
 
@@ -163,8 +159,13 @@ int main() {
     double *samples = readDFromFile("Data/samples.txt",3 * nSamples);
     double * signs = readDFromFile("Data/samplesSign.txt", nSamples);
     int count[3] = {0, 0, 0};
+    auto start = std::chrono::high_resolution_clock::now();
 
     countInterpolation( nNodes,  nodes, dA, dP, dT,  
                         nSamples, samples, signs, count);
     std::cout << count[0] << " " << count[1] << " " <<  count[2] << std::endl;
+    auto end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Total wo reading " <<  std::chrono::duration_cast<milli>(end - start).count()  << std::endl;
+
 }

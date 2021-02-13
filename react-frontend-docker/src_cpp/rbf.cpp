@@ -1,81 +1,106 @@
 #include <Eigen/Dense>
 #include <math.h>  
-
-
+#include <Eigen/Core>
 #include <iostream>
 #include <fstream>
-using namespace std;
+#include <chrono>
 
-double dist(const Eigen::ArrayXi& x, const Eigen::ArrayXd& y, int d) {
-    double acum = 0;
-    for (int i = 0; i < d; ++i){
-        double tmp = (x(i) - y(i));
-        acum += tmp * tmp;
+
+double euclidean_distance( const double *u, const double *v,
+                    const int n)
+{
+    double s = 0.0;
+    int i;
+
+    for (i = 0; i < n; ++i) {
+        const double d = u[i] - v[i];
+        s += (d * d);
     }
-    return sqrt(acum);
+    return sqrt(s);
 }
 
 
-Eigen::MatrixXD pDist1(const Eigen::MatrixXD& X){
-    int n = X.rows();
-    Eigen::MatrixXD res(n, n);
-    for (int i = 0; i <n){
-        res[i][i] = 0.;
-        for (int j = i; + 1 j < n) {
-            res(i,j) = dist(X(i), X(j) );
-            res(j, i) = res(i, j);
+double *  cdist_euclidean(const double *XA, const double *XB,  double *dm,
+                  const int num_rowsA, const int num_rowsB,
+                 const int num_cols)
+{
+    int i, j;
+    double* dmiter = dm;
+    for (i = 0; i < num_rowsA; ++i) {
+        const double *u = XA + (num_cols * i);
+        for (j = 0; j < num_rowsB; ++j, ++dmiter) {
+            const double *v = XB + (num_cols * j);
+            *dmiter = euclidean_distance( u, v, num_cols);
         }
     }
-    return res;
+    return dm;
 }
 
 
-Eigen::MatrixXD pDist2(const Eigen::MatrixXD& X, const Eigen::MatrixXD& Y){
-    Eigen::MatrixXD res(X.rows(), Y.rows());
-    for (int i = 0; i < X.rows())
-        for (int j = 0; j < Y.rows()) {
-            res(i,j) = dist(X(i), Y(j) );
-        }
+
+
+typedef Eigen::Matrix<double, Eigen::Dynamic, 3, Eigen::RowMajor> ObservationMatrix3;
+
+
+double Sqrt(double x) // the functor we want to apply
+{
+    return std::sqrt(x);
+}
+
+Eigen::MatrixXd pDist2(const ObservationMatrix3& X, const ObservationMatrix3& Y){
+    auto D = ( (X * Y.transpose() * -2
+        ).colwise() + X.transpose().colwise().squaredNorm().transpose() 
+        ).rowwise() + Y.transpose().colwise().squaredNorm();        
+    return D.unaryExpr(&Sqrt);
 }
 
 class RBF{
+    double * Kx_array;
     Eigen::MatrixXd Kx;
-    Eigen::MatrixXd f;
-    Eigen::MatrixXd X;
+    ObservationMatrix3 f;
+    double * X;
+    int n;
 
     public:
-        RBF(Eigen::MatrixXD& X, Eigen::MatrixXD& f);
-        predict(const Eigen::MatrixXD&);
+        RBF(double * X, double * Kx_array, int n , ObservationMatrix3& f);
+        Eigen::MatrixXd predict(const double*, double* , int);
 
 };
 
 
-RBF::RBF(Eigen::MatrixXD& X,  Eigen::MatrixXD& f){
-    this->Kx = pDist1(X);
+RBF::RBF(double * X,   double* Kx_array,  int n,  ObservationMatrix3& f ){
+    this->Kx_array = Kx_array;
+    cdist_euclidean(X,X ,Kx_array,  n, n, 3);
+    this->Kx = Eigen::Map<Eigen::MatrixXd>(Kx_array, n, n);
     this->f = f;
     this->X = X;
+    this->n = n;
 }
 
-Eigen::MatrixXD RBF::predict(const Eigen::MatrixXD& Y) { 
+Eigen::MatrixXd RBF::predict(const double * Y,  double* dm, int nSamples) { 
     // Compute the pdist matrix
-    Eigen::MatrixXd K_xy = pDist2(this->X, Y);
-    return K_xy * this->Kx.solve(this->f) ;
+    using milli = std::chrono::milliseconds;
+    auto start = std::chrono::high_resolution_clock::now();
+    double * K_yx_array = cdist_euclidean(this->X, Y,  dm, this->n, nSamples, 3);
+    auto pDistTime = std::chrono::high_resolution_clock::now();
+    Eigen::Map<Eigen::MatrixXd> K_yx = Eigen::Map<Eigen::MatrixXd>(K_yx_array, nSamples, this->n);
+    std::cout << "pDist time: " <<std::chrono::duration_cast<milli>(pDistTime - start).count() << std::endl;
+
+    Eigen::MatrixXd  res = K_yx * this->Kx.partialPivLu().solve(this->f);
+    return res ;
 }
-
-
-
 
 void countInterpolation(const int nNodes, double * points, double * dA, double * dP, double * dT,  
-                        const int nSamples , double * sampleCoordinates, int * signSamples,
+                        const int nSamples , double * sampleCoordinates, double * signSamples,
                         int * count) {
+
+    using milli = std::chrono::milliseconds;
+    auto start = std::chrono::high_resolution_clock::now();
     int i;
     // Copy nodes and poitns to eigen
-    Eigen::MatrixXd  X( nNodes, 3), Y(nSamples, 3), f(nNodes, 3);
+    ObservationMatrix3  f(nNodes, 3);
     // Old style copy, if it is too slow, change
     for (i =0; i < nNodes; ++i) {
-        X(i, 0) = points[3*i];
-        X(i, 1) = points[3*i + 1];
-        X(i, 2) = points[3*i + 2];
 
         f(i, 0) = dA[i];
         f(i, 1) = dP[i];
@@ -83,21 +108,25 @@ void countInterpolation(const int nNodes, double * points, double * dA, double *
 
     }
 
-    for (i = 0; i < nSamples; ++i) {
-        Y(i, 0) = sampleCoordinates[3*i];
-        Y(i, 1) = sampleCoordinates[3*i + 1];
-        Y(i, 2) = sampleCoordinates[3*i + 2];
 
-    }
-    RBF rbf(X, f);
-    Eigen::MatrixXd fy = rbf.predicy(Y);
+    double * Kx_array = (double *) malloc(nNodes * nNodes * sizeof(double));
+    double * dm = (double *) malloc(nNodes * nSamples * sizeof(double));
+    auto copy = std::chrono::high_resolution_clock::now();
+    std::cout << "Copy" <<std::chrono::duration_cast<milli>(copy - start).count() << std::endl;
+    RBF rbf(points, Kx_array, nNodes, f);
+
+    Eigen::MatrixXd fy = rbf.predict(sampleCoordinates, dm, nSamples);
+    auto interpolate = std::chrono::high_resolution_clock::now();
+    std::cout << "interpolate: " << std::chrono::duration_cast<milli>(interpolate - copy).count() << std::endl;
+
     for (i =0; i < 3; ++i) 
         count[i] = 0;
     for (i = 0; i < nSamples; ++i) {
         int closest;
-        if (fy(i, 0) < fy(i, 1) and fy(i, 0) < fy(i, 2)) 
+        if (fy(i, 0) < fy(i, 1) and fy(i, 0) < fy(i, 2)) {
             closest = 0;
-        else if (fy(i, 1 < fy(i, 2)){
+        }
+        else if (fy(i, 1) < fy(i, 2)){
             closest = 1;
         }
         else{ 
@@ -105,10 +134,37 @@ void countInterpolation(const int nNodes, double * points, double * dA, double *
         }
         count[closest] += signSamples[i];
     }
+    auto countTime = std::chrono::high_resolution_clock::now();
+    std::cout << "Total " <<  std::chrono::duration_cast<milli>(countTime - start).count()  << std::endl;
+
+
 }
 
+double* readDFromFile(std::string s, int n){
+    std::fstream fs;
+    double * res = (double *) malloc(n * sizeof(double));
+    fs.open (s, std::fstream::in);
+    for(int i = 0; i < n; ++i)
+        fs >> res[i];
+    return res;
+}
 
 int main() {
+    using milli = std::chrono::milliseconds;
 
+    int nNodes = 938;
+    int nSamples = 50000;
 
+    double *dA = readDFromFile("Data/dA.txt", nNodes);
+    double *dP = readDFromFile("Data/dP.txt", nNodes);
+    double *dT = readDFromFile("Data/dT.txt", nNodes);
+
+    double *nodes = readDFromFile("Data/nodes.txt", 3 * nNodes);
+    double *samples = readDFromFile("Data/samples.txt",3 * nSamples);
+    double * signs = readDFromFile("Data/samplesSign.txt", nSamples);
+    int count[3] = {0, 0, 0};
+
+    countInterpolation( nNodes,  nodes, dA, dP, dT,  
+                        nSamples, samples, signs, count);
+    std::cout << count[0] << " " << count[1] << " " <<  count[2] << std::endl;
 }

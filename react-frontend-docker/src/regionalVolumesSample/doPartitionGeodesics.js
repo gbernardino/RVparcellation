@@ -95,6 +95,7 @@ function boundingBox(points) {
 
 let interpolationMethod = 'rbf';
 let transpose = m => m[0].map((x,i) => m.map(x => x[i])) // https://stackoverflow.com/questions/17428587/transposing-a-2d-array-in-javascript
+
 export function computeRegionalVolumeSampling(mesh){
     var t0 = Date.now();
 

@@ -8,18 +8,36 @@ import {MeshesList} from './dataStructures';
 import "./styles/index.css"
 import {Link} from 'react-router-dom'
   
+import {computeRegionalVolumeSamplingWASM} from './regionalVolumesSample/samplingWASM'
+import InterpolateSampling from './interpolateSampling.js';
+import InterpolateSamplingWASM from './interpolateSampling.wasm';
+
+const interpolate = InterpolateSampling({
+  locateFile: () => {
+      return InterpolateSamplingWASM;
+  },
+});
 class ComputationWindow extends React.Component {
     constructor(props) {
       super(props);
     
       this.state = {patientsToCompute : new MeshesList(), numberToCompute : 1, numberComputed: 1,  mode : 'local'};
 
+      this.componentDidMount = this.componentDidMount.bind(this);      
       this.addFiles = this.addFiles.bind(this);
       this.sendPatientFile = this.sendPatientFile.bind(this);   
       this.sendAllPatients = this.sendAllPatients.bind(this);   
       this.generateAndDownload = this.generateAndDownload.bind(this);      
     }
-   
+
+    async componentDidMount() {
+      this.setState({module: undefined});
+      console.log('Start 3')
+      const wasm = await interpolate;
+      console.log(wasm);
+      this.setState({module: wasm});
+    }
+
     addFiles(acceptedFiles) {
       /*
       Add files to patients.
@@ -41,7 +59,7 @@ class ComputationWindow extends React.Component {
         return
       }
       var aux =  this.state.patientsToCompute.get(k).get(0).name.split('.').pop();
-
+      var moduleWASM = this.state.module
       if (this.state.mode === 'docker' ) {
         console.log('Sending new patient')
         var myHeaders = new Headers();
@@ -93,11 +111,24 @@ class ComputationWindow extends React.Component {
               
             }).then(
               function(results){
+                var tBeginGeodesics = Date.now();
+
                 let partitionED = doPartitionGeodesics(results.ED);
                 let partitionES = copyPartition(results.ES, partitionED);
-                let volsED = computeRegionalVolumeSampling(partitionED);
-                let volsES = computeRegionalVolumeSampling(partitionES);
-  
+                var volsED, volsES;
+                var tBeginSampling = Date.now();
+                console.log( 'Time geodesics =', tBeginSampling - tBeginGeodesics)
+
+                if (false) {
+                  volsED = computeRegionalVolumeSampling(partitionED);
+                  volsES = computeRegionalVolumeSampling(partitionES);
+                }
+                else{
+                  volsED = computeRegionalVolumeSamplingWASM(moduleWASM, partitionED);
+                  volsES = computeRegionalVolumeSamplingWASM(moduleWASM, partitionES);
+                }
+                console.log( 'Sampling volume =', Date.now() - tBeginSampling)
+
                 // TODO: Same code as in the server approach for computing: Do a function
                 global.props.addNewResult(k, volsED, volsES, partitionED, partitionES, false)
                 let patientsToCompute = global.state.patientsToCompute
@@ -157,7 +188,8 @@ class ComputationWindow extends React.Component {
                 <StyledDropzone onDrop={this.addFiles } />
                 <Button variant="dark" onClick={this.sendAllPatients} style = {{fontSize: 18}}> 
                 Parcellate!  </Button>
-                <Button variant="dark" disabled= {this.state.numberComputed !== this.state.numberToCompute} onClick={this.generateAndDownload} style = {{fontSize: 18}}>
+                <Button variant="dark" disabled= {this.state.numberComputed !== this.state.numberToCompute && this.state.module !== undefined} 
+                                  onClick={this.generateAndDownload} style = {{fontSize: 18}}>
                    Download CSV</Button>
                 <Link to="/visualisation">
                     <button type="button" style = {{fontSize: 18}}>

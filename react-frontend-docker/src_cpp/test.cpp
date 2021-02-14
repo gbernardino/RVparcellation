@@ -4,6 +4,7 @@
 #include <chrono>
 #include <iostream>
 #include <fstream>
+#include <emscripten.h>
 
 real* readDFromFile(std::string s, int n){
     std::fstream fs;
@@ -23,23 +24,24 @@ int* readIFromFile(std::string s, int n){
     return res;
 }
 
+extern "C" {
+	EMSCRIPTEN_KEEPALIVE
 
-void doParcellationSamplint(real *nodes, real*dA, real*dP, real*dT, int nNodes, int* triangles, int nTriangles, int nSamples, real * res) {
-
-    real * samples = (real *) malloc(sizeof(real) * 4 * nSamples);
-    real * signs = (real *) malloc(sizeof(real) *  nSamples);
-    int count[3] = {0, 0, 0};
-
-    MeshSampler sampler(nodes,  nNodes, triangles, nTriangles);
-    sampler.sample(nSamples, samples, signs);
-    countInterpolation( nNodes,  nodes, dA, dP, dT,  
-                        nSamples, samples, signs, count);
-    res[0] = sampler.volume;
-    res[1] = real(count[0])/(count[0] + count[1] + count[2]);
-    res[2] = real(count[1])/(count[0] + count[1] + count[2]);
-    res[3] = real(count[2])/(count[0] + count[1] + count[2]);
-    free(samples);
-    free(signs);
+    void doParcellationSamplint(real *nodes, real*dA, real*dP, real*dT, int nNodes, int* triangles, int nTriangles, int nSamples, real * res) {
+        real * samples = (real *) malloc(sizeof(real) * 3 * nSamples);
+        real * signs = (real *) malloc(sizeof(real) *  nSamples);
+        int count[3] = {0, 0, 0};
+        MeshSampler sampler(nodes,  nNodes, triangles, nTriangles);
+        sampler.sample(nSamples, samples, signs);
+        countInterpolation( nNodes,  nodes, dA, dP, dT,  
+                            nSamples, samples, signs, count);
+        res[0] = sampler.volume;
+        res[1] = real(count[0])/(count[0] + count[1] + count[2]);
+        res[2] = real(count[1])/(count[0] + count[1] + count[2]);
+        res[3] = real(count[2])/(count[0] + count[1] + count[2]);
+        free(samples);
+        free(signs);
+    }
 }
 
 
@@ -71,4 +73,4 @@ int main() {
     free(dP);
     free(dT);
     free(nodes);
-}
+} 

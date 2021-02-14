@@ -362,6 +362,12 @@ module.exports = function(webpackEnv) {
                 compact: isEnvProduction,
               },
             },
+            //Added following a weird tutorial
+            {
+              test: /\.(wasm)$/,
+              loader: 'file-loader',
+              type: 'javascript/auto',
+            },
             // Process any JS outside of the app with Babel.
             // Unlike the application JS, we only compile the standard ES features.
             {

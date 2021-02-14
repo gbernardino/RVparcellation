@@ -3,7 +3,6 @@
 #include "meshSampler.hpp"
 #include <vector>
 #include <cmath> 
-#include <iostream>
 
 inline real volTetra(real * p1, real * p2, real * p3, real * p4){
     real a1, a2,a3,b1,b2,b3,c1,c2,c3;
@@ -42,7 +41,7 @@ MeshSampler::MeshSampler(real * coordinates, int nPoints, int  * triangles, int 
     this->mean[0] /= nPoints;
     this->mean[1] /= nPoints;
     this->mean[2] /= nPoints;
-    std::cout << mean[0] << " " << mean[1] << " " << mean[2] << std::endl;
+
     //Compute volumes and samplers
     std::vector<real> volumes(nCells);
     this->signTetra = (real *) malloc( nCells * sizeof(real));
@@ -82,8 +81,6 @@ void MeshSampler::sampleTetrahedralCoordinates(int nSamples, real* outCoords) {
         outCoords[i +2] /= total;
         outCoords[i +3] /= total;
     }
-    int i = 40 *4;
-    std::cout <<  outCoords[i]  << " " << outCoords[i + 1] << " "  << outCoords[i + 2] << " "    << outCoords[i + 3] << std::endl;
 }
 
 
@@ -112,9 +109,6 @@ void MeshSampler::sample(int nSamples, real* outPoints , real* outSigns) {
                              baricentric[4*i + 3] * this->mean[2];
 
     }
-    int i = 40 *3;
-    std::cout <<  outPoints[i]  << " " << outPoints[i + 1] << " "  << outPoints[i + 2] << " "    << outPoints[i + 3] << std::endl;
-    std::cout << "VOL: " << this->volume << " " << this->absVolume << std::endl;
     free(baricentric);
 }
 

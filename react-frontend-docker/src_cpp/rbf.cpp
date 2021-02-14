@@ -1,7 +1,5 @@
 
 #include <cmath>  
-#include <iostream>
-#include <chrono>
 #include "rbf.hpp"
 
 real euclidean_distance( const real *u, const real *v,
@@ -59,12 +57,8 @@ RBF::RBF(real * X,   real* Kx_array,  int n,  ObservationMatrix3& f ){
 
 MatrixReal RBF::predict(const real * Y,  real* dm, int nSamples) { 
     // Compute the pdist matrix
-    using milli = std::chrono::milliseconds;
-    auto start = std::chrono::high_resolution_clock::now();
     real * K_yx_array = cdist_euclidean(this->X, Y,  dm, this->n, nSamples, 3);
-    auto pDistTime = std::chrono::high_resolution_clock::now();
     Eigen::Map<MatrixReal> K_yx = Eigen::Map<MatrixReal>(K_yx_array, nSamples, this->n);
-    std::cout << "pDist time: " <<std::chrono::duration_cast<milli>(pDistTime - start).count() << std::endl;
 
     MatrixReal  res = K_yx * this->Kx.partialPivLu().solve(this->f);
     return res ;
@@ -74,8 +68,6 @@ void countInterpolation(const int nNodes, real * points, real * dA, real * dP, r
                         const int nSamples , real * sampleCoordinates, real * signSamples,
                         int * count) {
 
-    using milli = std::chrono::milliseconds;
-    auto start = std::chrono::high_resolution_clock::now();
     int i;
     // Copy nodes and poitns to eigen
     ObservationMatrix3  f(nNodes, 3);
@@ -92,7 +84,6 @@ void countInterpolation(const int nNodes, real * points, real * dA, real * dP, r
     RBF rbf(points, Kx_array, nNodes, f);
 
     MatrixReal fy = rbf.predict(sampleCoordinates, dm, nSamples);
-    auto interpolate = std::chrono::high_resolution_clock::now();
 
     for (i =0; i < 3; ++i) 
         count[i] = 0;
@@ -109,8 +100,6 @@ void countInterpolation(const int nNodes, real * points, real * dA, real * dP, r
         }
         count[closest] += signSamples[i];
     }
-    auto countTime = std::chrono::high_resolution_clock::now();
-    std::cout << "Total wo memory " <<  std::chrono::duration_cast<milli>(countTime - start).count()  << std::endl;
     free(dm);
     free(Kx_array);
 

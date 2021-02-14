@@ -23,6 +23,26 @@ int* readIFromFile(std::string s, int n){
     return res;
 }
 
+
+void doParcellationSamplint(real *nodes, real*dA, real*dP, real*dT, int nNodes, int* triangles, int nTriangles, int nSamples, real * res) {
+
+    real * samples = (real *) malloc(sizeof(real) * 4 * nSamples);
+    real * signs = (real *) malloc(sizeof(real) *  nSamples);
+    int count[3] = {0, 0, 0};
+
+    MeshSampler sampler(nodes,  nNodes, triangles, nTriangles);
+    sampler.sample(nSamples, samples, signs);
+    countInterpolation( nNodes,  nodes, dA, dP, dT,  
+                        nSamples, samples, signs, count);
+    res[0] = sampler.volume;
+    res[1] = real(count[0])/(count[0] + count[1] + count[2]);
+    res[2] = real(count[1])/(count[0] + count[1] + count[2]);
+    res[3] = real(count[2])/(count[0] + count[1] + count[2]);
+    free(samples);
+    free(signs);
+}
+
+
 int main() {
     using milli = std::chrono::milliseconds;
 
@@ -34,29 +54,21 @@ int main() {
     real *dT = readDFromFile("Data/dT.txt", nNodes);
 
     real *nodes = readDFromFile("Data/nodes.txt", 3 * nNodes);
-    real *samples = readDFromFile("Data/samples.txt",3 * nSamples);
-    real * signs = readDFromFile("Data/samplesSign.txt", nSamples);
     int * triangles = readIFromFile("Data/triangles.txt", nTriangles * 3);
 
-    auto startSampling = std::chrono::high_resolution_clock::now();
-    MeshSampler sampler(nodes,  nNodes, triangles, nTriangles);
-    sampler.sample(nSamples, samples, signs);
-
-    int count[3] = {0, 0, 0};
+    real res[4];
     auto start = std::chrono::high_resolution_clock::now();
-    std::cout << "Total sampling " <<  std::chrono::duration_cast<milli>(start - startSampling).count()  << std::endl;
-
-    countInterpolation( nNodes,  nodes, dA, dP, dT,  
-                        nSamples, samples, signs, count);
-    std::cout << count[0] << " " << count[1] << " " <<  count[2] << std::endl;
+    MeshSampler sampler(nodes,  nNodes, triangles, nTriangles);
+    doParcellationSamplint(nodes, dA, dP, dT,nNodes,triangles, nTriangles, nSamples, res);
     auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Total time " <<  std::chrono::duration_cast<milli>(end - start).count()  << std::endl;
 
-    std::cout << "Total wo reading " <<  std::chrono::duration_cast<milli>(end - start).count()  << std::endl;
+    std::cout <<"Vol: " << res[0] << std::endl;
+    std::cout <<"Vol perc: " << res[1] << " "  << res[2] << " "  << res[3]   << std::endl;
+
 
     free(dA);
     free(dP);
     free(dT);
     free(nodes);
-    free(samples);
-    free(signs);
 }

@@ -14,11 +14,12 @@ class MeshSampler{
         real * signTetra;
         
 
-        real volume;
         real absVolume;
         std::discrete_distribution<> *distribution;
 
     public:
+        real volume;
+
         MeshSampler(real * coordinates, int nPoints, int  * triangles, int nCells);
         void sample(int nSamples, real* outPoints, real* outSigns) ;
         void sampleTetrahedralCoordinates(int nSamples, real* outCoords);

@@ -1,4 +1,4 @@
 react-frontend-docker/node_modules/
 react-frontend-docker/build/
-react-frontend-docker/src/*_wasmbinding.js
+react-frontend-docker/src/interpolateSampling.js
 *.wasm

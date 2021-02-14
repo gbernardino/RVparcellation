@@ -78,7 +78,7 @@
     "start": "node scripts/start.js",
     "build-react": "node scripts/build.js",
     "build-wasm": "sh src_cpp/make.sh",
-    "build": "npm run-script build-wasm && npm run-script build-reactc",
+    "build": "npm run-script build-wasm && npm run-script build-react",
 
     "test": "node scripts/test.js",
     "predeploy": "npm run build",

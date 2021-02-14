@@ -53,5 +53,6 @@ sed -i.old '1s;^;\/* eslint-disable *\/;' $OUTPUT_JS
 #sed -i.old "s|!isDataURI(wasmBinaryFile) |// !isDataURI(wasmBinaryFile) |g" $OUTPUT_JS
 
 mv $OUTPUT_JS ../src/
-mv $OUTPUT_WASM ../public/
+mv $OUTPUT_WASM ../src/
+rm "$OUTPUT_JS.old"
 

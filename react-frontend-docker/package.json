@@ -76,7 +76,10 @@
   },
   "scripts": {
     "start": "node scripts/start.js",
-    "build": "node scripts/build.js",
+    "build-react": "node scripts/build.js",
+    "build-wasm": "sh src_cpp/make.sh",
+    "build": "npm run-script build-wasm && npm run-script build-reactc",
+
     "test": "node scripts/test.js",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build"

@@ -1,6 +1,6 @@
 import React from 'react';
 import  { Button} from 'react-bootstrap';
-import StyledDropzone from './styledDropzone';
+import StyledDropzone from './components/styledDropzone';
 import {CircularProgressbar } from 'react-circular-progressbar';
 import {volume, readUCD} from './regionalVolumesSample/readUCD';
 import {doPartitionGeodesics, computeRegionalVolumeSampling, copyPartition} from './regionalVolumesSample/doPartitionGeodesics';

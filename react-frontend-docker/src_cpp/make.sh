@@ -15,7 +15,7 @@ emcc *.cpp \
 	-s EXPORTED_FUNCTIONS="['_free', '_malloc']" \
 	-O3 \
 	-I/Users/gbernardino/opt/anaconda3/pkgs/eigen-3.3.7-h04f5b5a_0/include/eigen3 \
-	-s INITIAL_MEMORY=104857600
+	-s INITIAL_MEMORY=104857600 \
 	-s ASSERTIONS=1
 
 # disable eslint
@@ -53,5 +53,5 @@ sed -i.old '1s;^;\/* eslint-disable *\/;' $OUTPUT_JS
 #sed -i.old "s|!isDataURI(wasmBinaryFile) |// !isDataURI(wasmBinaryFile) |g" $OUTPUT_JS
 
 mv $OUTPUT_JS ../src/
-mv $OUTPUT_WASM ../src/
+mv $OUTPUT_WASM ../public/
 

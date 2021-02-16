@@ -8,7 +8,7 @@ import {MeshesList} from './dataStructures';
 import "./styles/index.css"
 import {Link} from 'react-router-dom'
   
-import {computeRegionalVolumeSamplingWASM} from './regionalVolumesSample/samplingWASM'
+import {computeRegionalVolumeSamplingWASM, geodesicsWASM} from './regionalVolumesSample/samplingWASM'
 import InterpolateSampling from './interpolateSampling.js';
 import InterpolateSamplingWASM from './interpolateSampling.wasm';
 
@@ -32,10 +32,14 @@ class ComputationWindow extends React.Component {
 
     async componentDidMount() {
       this.setState({module: undefined});
-      console.log('Start 3')
-      const wasm = await interpolate;
-      console.log(wasm);
-      this.setState({module: wasm});
+
+      try {
+          const wasm = await interpolate;
+          this.setState({module: wasm});
+      }
+      catch {
+        this.setState({module: false});
+      }
     }
 
     addFiles(acceptedFiles) {
@@ -112,14 +116,21 @@ class ComputationWindow extends React.Component {
             }).then(
               function(results){
                 var tBeginGeodesics = Date.now();
+                var partitionED;
+                if(moduleWASM === false)  {
+                    partitionED = doPartitionGeodesics(results.ED);
+                }
+                else{
+                    partitionED = geodesicsWASM(moduleWASM, results.ED);
 
-                let partitionED = doPartitionGeodesics(results.ED);
+                }
                 let partitionES = copyPartition(results.ES, partitionED);
                 var volsED, volsES;
                 var tBeginSampling = Date.now();
                 console.log( 'Time geodesics =', tBeginSampling - tBeginGeodesics)
 
-                if (false) {
+                if (moduleWASM === false) {
+                  console.log('Could not load the WASM module, Fallback to Javascript')
                   volsED = computeRegionalVolumeSampling(partitionED);
                   volsES = computeRegionalVolumeSampling(partitionES);
                 }

@@ -15,6 +15,16 @@ function arrayFloat32ToPtr(module, array, l) {
     return ptr
 }
 
+function arrayToFloat32(array){
+    if (array instanceof Float32Array){
+        return array;
+    }
+    else{
+        var typedArray = Float32Array.from(array.flat());
+        return typedArray
+    }
+}
+
 export function computeRegionalVolumeSamplingWASM(module, mesh) {
 
     let nSamples = 10000;
@@ -28,37 +38,80 @@ export function computeRegionalVolumeSamplingWASM(module, mesh) {
     triangles = Int32Array.from(mesh.E.flat());
     var trianglesC = arrayInt32ToPtr(module, triangles, ptrs);
 
-    var points = new Float32Array;
-    points = Float32Array.from(mesh.Varray.flat());
+    var points = arrayToFloat32(mesh.Varray);
     var pointsC = arrayFloat32ToPtr(module, points, ptrs);
 
-    var dA = new Float32Array
-    dA = Float32Array.from(mesh.dA.flat());
+    var dA = arrayToFloat32(mesh.dA);
     var dAC = arrayFloat32ToPtr(module, dA, ptrs);
 
-    var dP = new Float32Array;
-    dP = Float32Array.from(mesh.dP.flat());
+    var dP = arrayToFloat32(mesh.dP);
     var dPC = arrayFloat32ToPtr(module, dP, ptrs);
 
-    var dT = new Float32Array;
-    dT = Float32Array.from(mesh.dT.flat());
+    var dT = arrayToFloat32(mesh.dT)
     var dTC = arrayFloat32ToPtr(module, dT, ptrs);
 
     var res = new Float32Array(4);
     var resC = arrayFloat32ToPtr(module, res, ptrs); // Reserve the space for output
     var t2 = Date.now()
     console.log('Time on copying data', t2 -t1)
-    module._doParcellationSamplint(pointsC, dAC,dPC, dTC, mesh.V.length, 
+    module._doParcellationSampling(pointsC, dAC,dPC, dTC, mesh.V.length, 
         trianglesC, mesh.E.length,  nSamples, resC);
-
-    for (let i = 0; i < ptrs.length; i += 1) { 
-        module._free(ptrs[i]);
-    }
 
     var vol = module.HEAPF32[resC/4];
     var cA = module.HEAPF32[resC/4 + 1];
     var cP = module.HEAPF32[resC/4 + 2];
     var cT = module.HEAPF32[resC/4 + 3];
     console.log(vol, cA, cP, cT)
+
+    for (let i = 0; i < ptrs.length; i += 1) { 
+        module._free(ptrs[i]);
+    }
+
+
     return[ vol * cP, vol * cT, vol * cA];
+}
+
+export function geodesicsWASM(module, polygonSoup) {
+    var ptrs = Array();
+
+    let E = polygonSoup[1];
+    let V = polygonSoup[0];
+    let Varray = [];
+    for (let i = 0; i < V.length; i++) {
+        Varray.push([V[i].x, V[i].y, V[i].z])
+    }
+    var Etyped = new Int32Array;
+    Etyped = Int32Array.from(E.flat());
+    var EC = arrayInt32ToPtr(module, Etyped, ptrs);
+
+    var Vtyped = arrayToFloat32(Varray);
+    var VC = arrayFloat32ToPtr(module, Vtyped, ptrs);
+
+    var dA = new Float32Array(V.length);
+    var dAC = arrayFloat32ToPtr(module, dA, ptrs); // Reserve the space for output
+
+    var dP = new Float32Array(V.length);
+    var dPC = arrayFloat32ToPtr(module, dP, ptrs); // Reserve the space for output
+
+    var dT = new Float32Array(V.length);
+    var dTC = arrayFloat32ToPtr(module, dT, ptrs); // Reserve the space for output
+
+    module._geodesicComputation(VC, EC, V.length, E.length, dAC, dPC, dTC)
+    
+    for (let i = 0; i < dA.length; i++){
+        dA[i] = module.HEAPF32[dAC/4 + i];
+        dP[i] = module.HEAPF32[dPC/4 + i];
+        dT[i] = module.HEAPF32[dTC/4 + i];
+
+    }
+    //Returns
+    let res = {}
+    res.E = E;
+    res.V = V;
+    res.Varray = Varray;
+    res.dA = dA;
+    res.dP = dP;
+    res.dT = dT;
+    return res;
+
 }

@@ -6,6 +6,12 @@
 #include <fstream>
 #include <emscripten.h>
 
+//Needs the following header library https://github.com/mojocorp/geodesic
+#include <geodesic/geodesic_algorithm_exact.h>
+
+
+
+
 real* readDFromFile(std::string s, int n){
     std::fstream fs;
     real * res = (real *) malloc(n * sizeof(real));
@@ -24,13 +30,54 @@ int* readIFromFile(std::string s, int n){
     return res;
 }
 
+
+void closestDistance(geodesic::GeodesicAlgorithmExact& algorithm, geodesic::Mesh& mesh, std::vector<int>& idx, real *d) {
+    std::vector<geodesic::SurfacePoint> all_sources(idx.size());
+    for (int i = 0; i < all_sources.size(); ++i) {
+        all_sources[i] = geodesic::SurfacePoint(&mesh.vertices()[idx[i]]);
+    }
+    algorithm.propagate(all_sources);
+
+    for (unsigned i = 0; i < mesh.vertices().size(); ++i) {
+        geodesic::SurfacePoint p(&mesh.vertices()[i]);
+        double distance;
+        unsigned best_source =algorithm.best_source(p, distance);
+        d[i] = distance;
+    }
+}
+
+extern "C" {
+	EMSCRIPTEN_KEEPALIVE
+    void geodesicComputation(real *nodes, int * triangles, int nNodes, int nTriangles, real *dA, real *dP, real *dT){
+
+        std::vector<int>  apexId {906};
+        std::vector<int>  pointsTricuspid{388, 389, 392, 393, 144, 540, 145, 538, 539, 422, 423, 38, 541, 49, 55, 328, 329, 332, 333, 87, 94, 100, 101, 103, 104, 105, 122, 123, 126, 127};
+        std::vector<int>  pointsPulmonary {410, 411, 409, 408, 53, 64, 65, 66, 67, 68, 69, 83, 476, 477, 92, 478, 480, 481, 482, 483, 484, 485, 486, 487, 488, 489, 479};
+
+        //Generate the mesh
+        std::vector<real>  pointsV(nodes, nodes + 3 * nNodes);
+        std::vector<int>  trianglesV(triangles, triangles + 3 * nTriangles );
+        std::cout << nNodes << " " << nTriangles << " " << trianglesV.size() << std::endl;
+        geodesic::Mesh mesh;
+        mesh.initialize_mesh_data(pointsV, trianglesV);
+
+        geodesic::GeodesicAlgorithmExact algorithm(&mesh);
+
+        closestDistance(algorithm, mesh, apexId, dA);
+        closestDistance(algorithm, mesh, pointsPulmonary, dP);
+        closestDistance(algorithm, mesh, pointsTricuspid, dT);
+
+    }
+}
+
 extern "C" {
 	EMSCRIPTEN_KEEPALIVE
 
-    void doParcellationSamplint(real *nodes, real*dA, real*dP, real*dT, int nNodes, int* triangles, int nTriangles, int nSamples, real * res) {
+    void doParcellationSampling(real *nodes, real*dA, real*dP, real*dT, int nNodes, int* triangles, int nTriangles, int nSamples, real * res) {
         real * samples = (real *) malloc(sizeof(real) * 3 * nSamples);
         real * signs = (real *) malloc(sizeof(real) *  nSamples);
         int count[3] = {0, 0, 0};
+
         MeshSampler sampler(nodes,  nNodes, triangles, nTriangles);
         sampler.sample(nSamples, samples, signs);
         countInterpolation( nNodes,  nodes, dA, dP, dT,  
@@ -61,7 +108,7 @@ int main() {
     real res[4];
     auto start = std::chrono::high_resolution_clock::now();
     MeshSampler sampler(nodes,  nNodes, triangles, nTriangles);
-    doParcellationSamplint(nodes, dA, dP, dT,nNodes,triangles, nTriangles, nSamples, res);
+    doParcellationSampling(nodes, dA, dP, dT,nNodes,triangles, nTriangles, nSamples, res);
     auto end = std::chrono::high_resolution_clock::now();
     std::cout << "Total time " <<  std::chrono::duration_cast<milli>(end - start).count()  << std::endl;
 

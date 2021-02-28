@@ -5,14 +5,12 @@ function parseGESTFile(text){
     
     let timingRegex = new RegExp( `FR=\\s+(${regexInt}) Left Marker Time=(${regexFloat}) Right Marker Time=(${regexFloat}) ES Time=(${regexFloat})`, 'g');
     let resTiming = timingRegex.exec(text)
-    console.log(resTiming, resTiming[1])
 
     let sizeRegex = new RegExp(`Num Frames:  Knots:\\s+(${regexInt})\\s+(${regexInt})`, 'g');
     sizeRegex.lastIndex = timingRegex.lastIndex;
     let resSize = sizeRegex.exec(text)
     let nFrames =parseInt(resSize[1]);
     let nKnots = parseInt(resSize[2]);
-    console.log(resSize, nFrames, nKnots, resSize[1])
 
 
     // Parse the
@@ -21,24 +19,22 @@ function parseGESTFile(text){
     //readNewFloat.lastIndex = sizeRegex.lastIndex;
     for (let i = 0; i < nFrames; ++i){
         let  frame =  new Float32Array(nKnots * 2);
-        console.log('meow')
         for (let j = 0; j < 2 * nKnots; ++j) { 
             let res = readNewFloat.exec(text);
-            console.log(res[1], readNewFloat.lastIndex)
             frame[j] = parseFloat(res[1])
         }
         traces.push(frame)
-        break;
     }
     return traces
 }
 
 
-function area2D(polyline) {
+function area2DPolyline(polyline) {
     //pivot point is (0,0)
     let area = 0;
+    var nPoints = Math.round(polyline.length/2);
     for (let i = 0; i < 2 * (nPoints - 1); i += 2 ) { 
-        area += polyline[2*i] * polyline[2* (i + 1) + 1] - polyline[2*i + 1] *   polyline[2*(i + 1)];
+        area += polyline[i] * polyline[i + 2 + 1] - polyline[i + 1] *   polyline[i + 2];
     }
     //add last triangle
     area += polyline[2*(nPoints - 1)] * polyline[2* (0) + 1] - polyline[2*(nPoints - 1) + 1] *   polyline[2 * 0+ 1];
@@ -46,46 +42,123 @@ function area2D(polyline) {
 }  
 
 class PartitionSpeckleTrackingContour{
-    constructor(polylineED) {
+    constructor(polylineED, nPoints) {
+        //apexId
+        let apexId = Math.floor(nPoints/2);
+        let distances = cumsum(distanceTransform(polylineED));
 
+        let d1 = distances[apexId] / 2;
+        let d2 = (distances[distances.length - 1] + distances[apexId]) / 2;
+        console.log(d2, distances)
+        this.intersection1 = findLinearInterpolation(distances, d1);
+        this.intersection2 = findLinearInterpolation(distances, d2);
+
+        this.nPoints = nPoints
     }
 
     computePartition(polyline) {
+        console.log(this.intersection1.i, this.intersection2.i)
+        let nPointsApex = 2 + (this.intersection2.i - this.intersection1.i)
+        let nPointsBase = 2 + (this.intersection1.i ) +  (this.nPoints - this.intersection2.i  )
+        console.log(nPointsApex, this, this.intersection1)
+        // Create the apical polyline
+        var apicalPolyline = new Float32Array(2 * nPointsApex)
+        // Add first point
+        let t1 = this.intersection1.t
+        let i1 = this.intersection1.i
+        apicalPolyline[0] = t1 * polyline[2* i1] + (1 - t1 ) *  polyline[2* (i1 + 1)];
+        apicalPolyline[1] = t1 * polyline[2* i1 + 1] + (1 - t1 ) *  polyline[2* (i1 + 1) + 1];
+        //add middle 
+        var iApex = 1;
+        for (let i = this.intersection1.i + 1; i <= this.intersection2.i; i++) { 
+            apicalPolyline[2*iApex] = polyline[2*i]
+            apicalPolyline[2*iApex + 1] = polyline[2*i + 1]
+            iApex = iApex + 1;
+        }
+        //add last
+        let t2 = this.intersection2.t
+        let i2 = this.intersection2.i
+        apicalPolyline[2*iApex] = t2 * polyline[2* i2] + (1 - t2 ) *  polyline[2* (i2 + 1)];
+        apicalPolyline[2*iApex + 1] = t2 * polyline[2* i2 + 1] + (1 - t2) *  polyline[2* (i2 + 1) + 1];
 
 
-        return [apicalPolyline, basalPolyline, areaApical, areaBasal];
+        //Create the basal polyline
+        var basalPolyline = new Float32Array(2 * nPointsBase);
+        var iBasal = 0;
+        //Copy first part -> 0 to i
+        for (let i = 0; i < this.intersection1.i; i++) { 
+            basalPolyline[2*iBasal] = polyline[2*i]
+            basalPolyline[2*iBasal + 1] = polyline[2*i + 1]
+            iBasal += 1;
+        }
+
+        //Copy 2 points
+        basalPolyline[2*iBasal + 0] = apicalPolyline[0];
+        basalPolyline[2*iBasal + 1] = apicalPolyline[0 + 1];
+        iBasal += 1;
+        basalPolyline[2*iBasal + 0] = apicalPolyline[2*nPointsApex - 2];
+        basalPolyline[2*iBasal + 1] = apicalPolyline[2*nPointsApex - 1];
+        iBasal += 1;
+        //Copy last segment
+        for (let i = this.intersection2.i + 1; i < this.nPoints; i++) { 
+            basalPolyline[2*iBasal] = polyline[2*i]
+            basalPolyline[2*iBasal + 1] = polyline[2*i + 1]
+            iBasal += 1;
+        }
+
+        return {apicalPolyline: apicalPolyline, basalPolyline: basalPolyline,
+                 areaApical : area2DPolyline(apicalPolyline), areaBasal : area2DPolyline(basalPolyline)}
     }
 }
 
+function findLinearInterpolation(v, k){
+    var t;
+    var iFinal
+    for(let i = 0; i < v.length; i++) {
+        if (v[i] <= k && v[i + 1] > k) {
+            // t * v[i] + (1 - t) * v[i + 1] = k
+            //t (v[i] - v[i +1]) = k - v[i + 1]
+            t = (k - v[i + 1])/(v[i] - v[i + 1])
+            iFinal = i; 
+            break
+        }
+    }
+    return {i: iFinal, t:t}
+}
+
 function distanceTransform(polyline){
-    d = new FLoatArray32(Math.floor(polyline.length/2));
+    d = new Float32Array(Math.floor(polyline.length/2) - 1);
     for (let i = 0 ; i < d.length; i++) {
         let dx = polyline[2*i] - polyline[2*(i + 1)];
-        let dy = polyline[2*i + 1] - polyline[2*(i + 1 + 1)];
+        let dy = polyline[2*i + 1] - polyline[2*(i + 1) + 1];
         d[i] = Math.sqrt(dx*dx + dy * dy);
     }
     return d
 }
 
 function cumsum(v){
-    c = new FLoatArray32(v.length);
+    c = new Float32Array(v.length);
     c[0] =0;
     for (let i = 1; i < v.length; ++i){
         c[i] = c[i -1] + v[i];
     }
-    return v;
+    return c;
 }
 
-text = "FName=NMC\
-LName=\
-ID=ADUHEART002\
-Exam.Date=13_05_2015\
-View=2CH\
-2DS Date=2017_03_28\
-Knot positions (X:Y) in mm (relative to probe position)\
-FR= 88 Left Marker Time=0.136000 Right Marker Time=1.019000 ES Time=0.532000\
-Num Frames:  Knots:\
-     108       63\
-     3.08,  111.17, 2.08,  108.39, 1.07,  105.60, 0.06,  102.79,-0.95,  99.94,-1.95,  97.05,-2.92,  94.12,-3.84,  91.15,-4.68,  88.14,-5.43,  85.12,-6.09,  82.10,-6.71,  79.09,-7.34,  76.10,-7.97,  73.11,-8.60,  70.12,-9.18,  67.12,-9.69,  64.08,-10.08,  61.04,-10.34,  57.97,-10.47,  54.83,-10.48,  51.58,-10.33,  48.24,-10.01,  44.87,-9.52,  41.52,-8.84,  38.25,-7.95,  35.12,-6.84,  32.20,-5.51,  29.54,-3.97,  27.20,-2.20,  25.26,-0.22,  23.76, 1.94,  22.76, 4.26,  22.31, 6.68,  22.43, 9.11,  23.10, 11.51,  24.28, 13.80,  25.89, 15.97,  27.88, 18.02,  30.20, 19.94,  32.78, 21.76,  35.58, 23.46,  38.55, 25.05,  41.64, 26.55,  44.82, 27.97,  48.05, 29.30,  51.29, 30.57,  54.51, 31.79,  57.69, 32.96,  60.82, 34.08,  63.90, 35.15,  66.95, 36.15,  69.97, 37.05,  72.98, 37.82,  76.00, 38.46,  79.01, 38.95,  82.02, 39.30,  85.03, 39.51,  88.03, 39.61,  91.00, 39.62,  93.97, 39.56,  96.91, 39.45,  99.85, 39.31,  102.78,\
-"
-console.log(parseGESTFile(text))
+
+
+
+// Main
+
+fs = require('fs')
+fs.readFile('/Users/gbernardino/Data/aduheartSpeckleTracking/ADUHEART051/4CHAMBERS/2DS120_ADUHEART051__05_06_2015_4CH_FULL_TRACE_SEGADUHEART051 4CH.CSV', 'utf8', function (err,data) {
+  if (err) {
+    return console.log(err);
+  }
+  let parsedPolylines = parseGESTFile(data);
+  let partition = new PartitionSpeckleTrackingContour(parsedPolylines[0], Math.round(parsedPolylines[0].length/2));
+
+  console.log(
+      console.log(partition.computePartition(parsedPolylines[0]))
+  );
+});

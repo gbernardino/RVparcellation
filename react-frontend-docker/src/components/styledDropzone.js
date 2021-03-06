@@ -43,17 +43,22 @@ function StyledDropzone(props) {
     isDragAccept,
     isDragReject
   } = useDropzone({onDrop : onDrop,
-                accept: '.vtk, .ucd'
+                accept:  props.accept
               });
   
   return (
     <div className="container">
       <Container {...getRootProps({isDragActive, isDragAccept, isDragReject})}>
         <input {...getInputProps()} />
-        <p>Drag 'n' drop some UCD files here, or click to select files</p>
+        <p>{props.text}</p>
       </Container>
     </div>
   );
+}
+
+StyledDropzone.defaultProps = {
+  text : "Drag 'n' drop some UCD files here, or click to select files",
+  accept: '.vtk, .ucd'
 }
 
 export default StyledDropzone ;

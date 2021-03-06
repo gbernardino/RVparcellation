@@ -1,5 +1,5 @@
 
-function parseGESTFile(text){
+export function parseGESTFile(text){
     let regexFloat =  "[-]?[0-9]+\.[0-9]+";
     let regexInt = "[0-9]+";
     
@@ -37,11 +37,11 @@ function area2DPolyline(polyline) {
         area += polyline[i] * polyline[i + 2 + 1] - polyline[i + 1] *   polyline[i + 2];
     }
     //add last triangle
-    area += polyline[2*(nPoints - 1)] * polyline[2* (0) + 1] - polyline[2*(nPoints - 1) + 1] *   polyline[2 * 0+ 1];
+    area += polyline[2*(nPoints - 1)] * polyline[2* (0) + 1] - polyline[2*(nPoints - 1) + 1] *   polyline[2 * 0];
     return area
 }  
 
-class PartitionSpeckleTrackingContour{
+export class PartitionSpeckleTrackingContour{
     constructor(polylineED, nPoints) {
         //apexId
         let apexId = Math.floor(nPoints/2);
@@ -59,7 +59,7 @@ class PartitionSpeckleTrackingContour{
     computePartition(polyline) {
         console.log(this.intersection1.i, this.intersection2.i)
         let nPointsApex = 2 + (this.intersection2.i - this.intersection1.i)
-        let nPointsBase = 2 + (this.intersection1.i ) +  (this.nPoints - this.intersection2.i  )
+        let nPointsBase = 2 + (this.intersection1.i  + 1) +  (this.nPoints - this.intersection2.i  -1 )
         console.log(nPointsApex, this, this.intersection1)
         // Create the apical polyline
         var apicalPolyline = new Float32Array(2 * nPointsApex)
@@ -86,7 +86,7 @@ class PartitionSpeckleTrackingContour{
         var basalPolyline = new Float32Array(2 * nPointsBase);
         var iBasal = 0;
         //Copy first part -> 0 to i
-        for (let i = 0; i < this.intersection1.i; i++) { 
+        for (let i = 0; i <= this.intersection1.i; i++) { 
             basalPolyline[2*iBasal] = polyline[2*i]
             basalPolyline[2*iBasal + 1] = polyline[2*i + 1]
             iBasal += 1;
@@ -105,7 +105,7 @@ class PartitionSpeckleTrackingContour{
             basalPolyline[2*iBasal + 1] = polyline[2*i + 1]
             iBasal += 1;
         }
-
+        console.log(iBasal, nPointsBase)
         return {apicalPolyline: apicalPolyline, basalPolyline: basalPolyline,
                  areaApical : area2DPolyline(apicalPolyline), areaBasal : area2DPolyline(basalPolyline)}
     }
@@ -127,7 +127,7 @@ function findLinearInterpolation(v, k){
 }
 
 function distanceTransform(polyline){
-    d = new Float32Array(Math.floor(polyline.length/2) - 1);
+    let d = new Float32Array(Math.floor(polyline.length/2) - 1);
     for (let i = 0 ; i < d.length; i++) {
         let dx = polyline[2*i] - polyline[2*(i + 1)];
         let dy = polyline[2*i + 1] - polyline[2*(i + 1) + 1];
@@ -137,7 +137,7 @@ function distanceTransform(polyline){
 }
 
 function cumsum(v){
-    c = new Float32Array(v.length);
+    let c = new Float32Array(v.length);
     c[0] =0;
     for (let i = 1; i < v.length; ++i){
         c[i] = c[i -1] + v[i];
@@ -149,7 +149,7 @@ function cumsum(v){
 
 
 // Main
-
+/*
 fs = require('fs')
 fs.readFile('/Users/gbernardino/Data/aduheartSpeckleTracking/ADUHEART051/4CHAMBERS/2DS120_ADUHEART051__05_06_2015_4CH_FULL_TRACE_SEGADUHEART051 4CH.CSV', 'utf8', function (err,data) {
   if (err) {
@@ -162,3 +162,4 @@ fs.readFile('/Users/gbernardino/Data/aduheartSpeckleTracking/ADUHEART051/4CHAMBE
       console.log(partition.computePartition(parsedPolylines[0]))
   );
 });
+*/

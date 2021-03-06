@@ -11,7 +11,7 @@ import VisualisationPage from './pages/visualisation'
 import AboutPage from './pages/about.jsx'
 import './styles/index.css';
 import SideBar from "./components/burgerMenu";
-
+import DisplayWindowST2D from "./speckleTracking2D/pageSTGE"
 
 class App extends React.Component {
   constructor(props) {
@@ -66,6 +66,9 @@ class App extends React.Component {
               </Route>
               <Route path="/settings">
                 <SettingsPage />
+              </Route>
+              <Route path = "/speckletracking2d">
+                <DisplayWindowST2D />
               </Route>
             </Switch>
         </div>

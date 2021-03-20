@@ -6,6 +6,8 @@ export default props => {
     // Pass on our props
     <Menu {...props}>
         <Link to="/">Home</Link>
+        <Link to="/speckletracking2d"> 2D contour  analysis</Link>
+
         <Link to="/computation">Computation</Link>
         <Link to="/visualisation">Visualisation</Link>
         <Link to="/settings">Settings</Link>

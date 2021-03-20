@@ -4,6 +4,7 @@ cd $DIR
 MODULE_NAME=InterpolateSampling
 OUTPUT_JS=interpolateSampling.js
 OUTPUT_WASM=interpolateSampling.wasm
+#export NODE_OPTIONS="--max-old-space-size=8192"
 
 # Ugly, better use CMAKE or other tool
 emcc *.cpp \
@@ -16,7 +17,12 @@ emcc *.cpp \
 	-O3 \
 	-I/Users/gbernardino/opt/anaconda3/pkgs/eigen-3.3.7-h04f5b5a_0/include/eigen3 \
 	-I/Users/gbernardino/geodesic/include \
-	-s INITIAL_MEMORY=104857600 
+	-s ALLOW_MEMORY_GROWTH \
+	-s TOTAL_MEMORY=278396928 
+
+#	-g2 \
+#	--bind \
+#	-fsanitize=address
 	
 # disable eslint
 # Copied from internet 

@@ -5,7 +5,6 @@
 #include <iostream>
 #include <fstream>
 #include <emscripten.h>
-
 //Needs the following header library https://github.com/mojocorp/geodesic
 #include <geodesic/geodesic_algorithm_exact.h>
 
@@ -70,26 +69,45 @@ extern "C" {
     }
 }
 
+
+void doParcellationSamplingBatch(MeshSampler& sampler, real *nodes, real*dA, real*dP, real*dT, int nNodes, int* triangles, int nTriangles, int nSamples, int * count) {
+    real * samples = (real *) malloc(sizeof(real) * 3 * nSamples);
+    real * signs = (real *) malloc(sizeof(real) *  nSamples);
+
+    sampler.sample(nSamples, samples, signs);
+    countInterpolation( nNodes,  nodes, dA, dP, dT,  
+                        nSamples, samples, signs, count);
+    free(samples);
+    free(signs);
+}
+
+
 extern "C" {
 	EMSCRIPTEN_KEEPALIVE
-
     void doParcellationSampling(real *nodes, real*dA, real*dP, real*dT, int nNodes, int* triangles, int nTriangles, int nSamples, real * res) {
-        real * samples = (real *) malloc(sizeof(real) * 3 * nSamples);
-        real * signs = (real *) malloc(sizeof(real) *  nSamples);
+        MeshSampler sampler(nodes,  nNodes, triangles, nTriangles);
         int count[3] = {0, 0, 0};
 
-        MeshSampler sampler(nodes,  nNodes, triangles, nTriangles);
-        sampler.sample(nSamples, samples, signs);
-        countInterpolation( nNodes,  nodes, dA, dP, dT,  
-                            nSamples, samples, signs, count);
+        while (nSamples > 0) {
+            int nSamplesToProcess = std::min(nSamples, 1000);
+            nSamples -= nSamplesToProcess;
+            doParcellationSamplingBatch(sampler, nodes, dA, dP, dT, nNodes, triangles, nTriangles, nSamplesToProcess, count);
+        }
         res[0] = sampler.volume;
         res[1] = real(count[0])/(count[0] + count[1] + count[2]);
         res[2] = real(count[1])/(count[0] + count[1] + count[2]);
         res[3] = real(count[2])/(count[0] + count[1] + count[2]);
-        free(samples);
-        free(signs);
+
     }
 }
+
+#ifdef MEMORY_CHECK
+    using namespace emscripten;
+    EMSCRIPTEN_BINDINGS(my_module) {
+        function("doLeakCheck", &__lsan_do_recoverable_leak_check);
+    }
+#endif
+
 
 
 int main() {

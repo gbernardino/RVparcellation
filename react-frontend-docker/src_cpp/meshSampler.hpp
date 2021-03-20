@@ -23,5 +23,5 @@ class MeshSampler{
         MeshSampler(real * coordinates, int nPoints, int  * triangles, int nCells);
         void sample(int nSamples, real* outPoints, real* outSigns) ;
         void sampleTetrahedralCoordinates(int nSamples, real* outCoords);
-        ~ MeshSampler ();
+        ~MeshSampler();
 };

@@ -1,21 +1,24 @@
 
 export function parseGESTFile(text){
-    let regexFloat =  "[-]?[0-9]+\.[0-9]+";
+    let regexFloat =  "[-]?[0-9]+.[0-9]+";
     let regexInt = "[0-9]+";
     
     let timingRegex = new RegExp( `FR=\\s+(${regexInt}) Left Marker Time=(${regexFloat}) Right Marker Time=(${regexFloat}) ES Time=(${regexFloat})`, 'g');
     let resTiming = timingRegex.exec(text)
+    let FR = parseInt(resTiming[1])
+    //let LMTi = Math.round(Number(resTiming[2]) * FR)
+    //let RMTi = Math.round(Number(resTiming[3]) * FR)
+    //let ES = Math.round(Number(resTiming[4])*FR) - LMTi
 
     let sizeRegex = new RegExp(`Num Frames:  Knots:\\s+(${regexInt})\\s+(${regexInt})`, 'g');
     sizeRegex.lastIndex = timingRegex.lastIndex;
     let resSize = sizeRegex.exec(text)
     let nFrames =parseInt(resSize[1]);
     let nKnots = parseInt(resSize[2]);
-
-
     // Parse the
     let traces = [];
     let readNewFloat = new RegExp(`(${regexFloat}),`, 'g');
+    let areas = []
     //readNewFloat.lastIndex = sizeRegex.lastIndex;
     for (let i = 0; i < nFrames; ++i){
         let  frame =  new Float32Array(nKnots * 2);
@@ -23,9 +26,21 @@ export function parseGESTFile(text){
             let res = readNewFloat.exec(text);
             frame[j] = parseFloat(res[1])
         }
-        traces.push(frame)
+        traces.push(frame);
+        areas.push(area2DPolyline(frame));
     }
-    return traces
+
+
+    //From https://gist.github.com/janosh/099bd8061f15e3fbfcc19be0e6b670b9
+    const argFact = (compareFn) => (array) => array.map((el, idx) => [el, idx]).reduce(compareFn)[1]
+
+    const argMax = argFact((min, el) => (el[0] > min[0] ? el : min))
+    const argMin = argFact((max, el) => (el[0] < max[0] ? el : max))
+
+    let ED = argMax(areas);
+    let ES = argMin(areas);
+    console.log(ED, ES)
+    return {traces : traces,  FR : FR, ES : ES, ED : ED}
 }
 
 
@@ -49,7 +64,6 @@ export class PartitionSpeckleTrackingContour{
 
         let d1 = distances[apexId] / 2;
         let d2 = (distances[distances.length - 1] + distances[apexId]) / 2;
-        console.log(d2, distances)
         this.intersection1 = findLinearInterpolation(distances, d1);
         this.intersection2 = findLinearInterpolation(distances, d2);
 
@@ -57,10 +71,8 @@ export class PartitionSpeckleTrackingContour{
     }
 
     computePartition(polyline) {
-        console.log(this.intersection1.i, this.intersection2.i)
         let nPointsApex = 2 + (this.intersection2.i - this.intersection1.i)
         let nPointsBase = 2 + (this.intersection1.i  + 1) +  (this.nPoints - this.intersection2.i  -1 )
-        console.log(nPointsApex, this, this.intersection1)
         // Create the apical polyline
         var apicalPolyline = new Float32Array(2 * nPointsApex)
         // Add first point
@@ -105,7 +117,6 @@ export class PartitionSpeckleTrackingContour{
             basalPolyline[2*iBasal + 1] = polyline[2*i + 1]
             iBasal += 1;
         }
-        console.log(iBasal, nPointsBase)
         return {apicalPolyline: apicalPolyline, basalPolyline: basalPolyline,
                  areaApical : area2DPolyline(apicalPolyline), areaBasal : area2DPolyline(basalPolyline)}
     }

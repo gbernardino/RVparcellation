@@ -5,7 +5,7 @@ import { Canvas} from 'react-three-fiber'
 import { TrackballControls} from 'drei'
 import * as THREE from "three";
 import Select from 'react-select'
-import SplitPane, { Pane } from 'react-split-pane';
+import SplitPane from 'react-split-pane';
 
 const  RightVentricleMesh = (props) => {
   //console.log(props.rv)

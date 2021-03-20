@@ -28,6 +28,53 @@ function parseUCD(text) {
     return [Points, Cells]
 }
 
+function parseVTK(text) {
+    var Points = [];
+    var Cells = [];
+
+    let floatExpr = "[+-]?([0-9]*[.])?[0-9]+";
+    let intExpr = "[0-9]+";
+
+    // Parse points
+    let sizeRegex = new RegExp(`POINTS (${intExpr}) float`, 'g');
+    let resPoints = sizeRegex.exec(text)
+    let nPoints =parseInt(resPoints[1]);
+
+    let floatRegex = new RegExp(`${floatExpr}`, 'g');
+    floatRegex.lastIndex = sizeRegex.lastIndex;
+    for (let i = 0; i < nPoints; i ++) {
+        let pointString1 = floatRegex.exec(text)
+        let pointString2 = floatRegex.exec(text)
+        let pointString3 = floatRegex.exec(text)
+
+        Points.push(new Vector3(parseFloat(pointString1[0]), parseFloat(pointString2[0]), parseFloat(pointString3[0])));
+    }
+
+    // Parse cells
+    let polygonsRegex = new RegExp(`POLYGONS\\s+(${intExpr})\\s+(${intExpr})`, 'g');
+    polygonsRegex.lastIndex = floatRegex.lastIndex;
+    let resFaces = polygonsRegex.exec(text);
+    console.log(resFaces)
+
+    let nCells =parseInt(resFaces[1]);
+
+    let parseIntRegex = new RegExp(`(${intExpr})`, 'g');
+    parseIntRegex.lastIndex = polygonsRegex.lastIndex;
+    for (let i = 0; i < nCells; i ++) {
+        let nPointsInCell = parseInt(parseIntRegex.exec(text)[0]);
+        let cell = []
+        for (let j = 0; j < nPointsInCell; ++j){
+
+            cell.push(parseInt(
+                 parseInt(parseIntRegex.exec(text)[0])
+                  ));
+        }
+        Cells.push(cell)
+    }
+
+    return [Points, Cells]
+}
+
 export function volume(coordinates, triangles) {
   // COMPUTE mean
   let mean = new Vector3(0,0,0);
@@ -49,7 +96,7 @@ export function volume(coordinates, triangles) {
   return totalVol;
 }
 
-export function readUCD(blob) {
+export function readFile(blob) {
     function readFile(blob){
         return new Promise((resolve, reject) => {
           var fr = new FileReader();  
@@ -59,6 +106,14 @@ export function readUCD(blob) {
           fr.readAsText(blob);
         });
       }
-      return readFile(blob).then(parseUCD)
+      if (blob.name.endsWith(".ucd")){
+         return readFile(blob).then(parseUCD)
+      }
+      else if (blob.name.endsWith(".vtk")){
+        return readFile(blob).then(parseVTK)
+      }
+      else{
+          throw new Error ("Unnkown mesh format - only accepting VTK and UCD (lowercase)");
+      }
 }
 

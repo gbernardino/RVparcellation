@@ -32,10 +32,9 @@ export function computeRegionalVolumeSamplingWASM(module, mesh) {
 
     // Convert everything to C
     // If slow, could be optimised since 1) we can reuse the allocated space and 2) there is no need of so many onversion
-    var ptrs = Array();
+    var ptrs = [];
 
-    var triangles =  new Int32Array;
-    triangles = Int32Array.from(mesh.E.flat());
+    var triangles =  Int32Array.from(mesh.E.flat());
     var trianglesC = arrayInt32ToPtr(module, triangles, ptrs);
 
     var points = arrayToFloat32(mesh.Varray);
@@ -66,13 +65,13 @@ export function computeRegionalVolumeSamplingWASM(module, mesh) {
     for (let i = 0; i < ptrs.length; i += 1) { 
         module._free(ptrs[i]);
     }
-
+    //module.doLeakCheck();
 
     return[ vol * cP, vol * cT, vol * cA];
 }
 
 export function geodesicsWASM(module, polygonSoup) {
-    var ptrs = Array();
+    var ptrs = [];
 
     let E = polygonSoup[1];
     let V = polygonSoup[0];
@@ -80,8 +79,7 @@ export function geodesicsWASM(module, polygonSoup) {
     for (let i = 0; i < V.length; i++) {
         Varray.push([V[i].x, V[i].y, V[i].z])
     }
-    var Etyped = new Int32Array;
-    Etyped = Int32Array.from(E.flat());
+    var Etyped = Int32Array.from(E.flat());
     var EC = arrayInt32ToPtr(module, Etyped, ptrs);
 
     var Vtyped = arrayToFloat32(Varray);
@@ -103,6 +101,10 @@ export function geodesicsWASM(module, polygonSoup) {
         dP[i] = module.HEAPF32[dPC/4 + i];
         dT[i] = module.HEAPF32[dTC/4 + i];
 
+    }
+
+    for (let i = 0; i < ptrs.length; i += 1) { 
+        module._free(ptrs[i]);
     }
     //Returns
     let res = {}

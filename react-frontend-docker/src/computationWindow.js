@@ -2,7 +2,7 @@ import React from 'react';
 import  { Button} from 'react-bootstrap';
 import StyledDropzone from './components/styledDropzone';
 import {CircularProgressbar } from 'react-circular-progressbar';
-import {volume, readUCD} from './regionalVolumesSample/readUCD';
+import {volume, readFile} from './regionalVolumesSample/readUCD';
 import {doPartitionGeodesics, computeRegionalVolumeSampling, copyPartition} from './regionalVolumesSample/doPartitionGeodesics';
 import {MeshesList} from './dataStructures';
 import "./styles/index.css"
@@ -53,7 +53,7 @@ class ComputationWindow extends React.Component {
       this.setState({ patients: patients});
     }
 
-    sendPatientFile(k){
+    sendPatientFile(k, chainExecution = false){
       /*
       WARNING: not sure how this handles concurent accesses... better work one by one.
       */
@@ -92,7 +92,7 @@ class ComputationWindow extends React.Component {
           let global = this;
           var fullCycleFiles = [];
           this.state.patientsToCompute.get(k).keys().forEach(t =>  fullCycleFiles.push(this.state.patientsToCompute.get(k).get(t) )); // This can prob be simplified...
-          Promise.all(fullCycleFiles.map(readUCD)).then(
+          Promise.all(fullCycleFiles.map(readFile)).then(
             function(results){
               var t2 = Date.now()
               console.log('Time parsing files', t2 - t1)
@@ -146,6 +146,11 @@ class ComputationWindow extends React.Component {
                 patientsToCompute.removeFile(k)
                 global.setState({patientsToCompute : patientsToCompute, numberComputed: global.state.numberComputed + 1})
                 console.log( 'Total patient processing time =', Date.now() - t1)
+
+                if (chainExecution && patientsToCompute.length() > 0){
+                  let k = patientsToCompute.keys()[0];
+                  global.sendPatientFile(k, chainExecution)
+                }
               }
             )        
           return
@@ -154,6 +159,13 @@ class ComputationWindow extends React.Component {
     }
     
     sendAllPatients(){
+      //TODO: Check that it is correct
+        this.setState({numberToCompute: this.state.patientsToCompute.length(), numberComputed : 0})
+        let k = this.state.patientsToCompute.keys()[0];
+        this.sendPatientFile(k, true)
+
+    }
+    sendAllPatientsConcurrent(){
       //TODO: Check that it is correct
         this.setState({numberToCompute: this.state.patientsToCompute.length(), numberComputed : 0})
         this.state.patientsToCompute.keys().forEach(k => this.sendPatientFile(k))

@@ -65,7 +65,7 @@ extern "C" {
         closestDistance(algorithm, mesh, apexId, dA);
         closestDistance(algorithm, mesh, pointsPulmonary, dP);
         closestDistance(algorithm, mesh, pointsTricuspid, dT);
-
+        //algorithm.clear(); // THis is private and couldn't call
     }
 }
 
@@ -89,7 +89,7 @@ extern "C" {
         int count[3] = {0, 0, 0};
 
         while (nSamples > 0) {
-            int nSamplesToProcess = std::min(nSamples, 1000);
+            int nSamplesToProcess = std::min(nSamples, 10000);
             nSamples -= nSamplesToProcess;
             doParcellationSamplingBatch(sampler, nodes, dA, dP, dT, nNodes, triangles, nTriangles, nSamplesToProcess, count);
         }

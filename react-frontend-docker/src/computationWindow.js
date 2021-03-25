@@ -182,6 +182,7 @@ class ComputationWindow extends React.Component {
       csvContent += columnNames + "\r\n";
       this.props.patientsComputed.forEach(function (item, index) {
         var rowInteger = new Array(items.length)
+        rowInteger[0] = item[0];
         for (var i = 1; i < items.length; i++) {
           rowInteger[i] = Number(item[i]).toFixed(3)
         }

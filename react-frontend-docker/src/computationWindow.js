@@ -206,6 +206,10 @@ class ComputationWindow extends React.Component {
       let percentage = 100 * this.state.numberComputed / this.state.numberToCompute;
       return (
         <div className="Computation">
+          <h4>Instructions </h4>
+          <ul>1) Drag and drop all the meshes (in VTK or UCD) corresponding to number of individuals on the Dropzone (only full cycles). All read patients should appear on the left column. </ul>
+          <ul>2) Click on Parcellate (computation time ~ 0.5 - 1 s per patient). After this step, all your patients should be in the "Patients computed" column on the right.</ul>
+          <ul>3) Click on download CSV to get all the tabulated measurements of your population, or on visualisation for viewing the meshes. </ul>
             <aside>
             {this.state.numberComputed === this.state.numberToCompute ?
               ( <div> 

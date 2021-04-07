@@ -1,6 +1,6 @@
 
 export function parseGESTFile(text){
-    let regexFloat =  "[-]?[0-9]+.[0-9]+";
+    let regexFloat =  "[-]?[0-9]+.?[0-9]*";
     let regexInt = "[0-9]+";
     
     let timingRegex = new RegExp( `FR=\\s+(${regexInt}) Left Marker Time=(${regexFloat}) Right Marker Time=(${regexFloat}) ES Time=(${regexFloat})`, 'g');
@@ -10,22 +10,28 @@ export function parseGESTFile(text){
     //let RMTi = Math.round(Number(resTiming[3]) * FR)
     //let ES = Math.round(Number(resTiming[4])*FR) - LMTi
 
-    let sizeRegex = new RegExp(`Num Frames:  Knots:\\s+(${regexInt})\\s+(${regexInt})`, 'g');
+    let sizeRegex = new RegExp(`Num Frames:  Knots:.*\\s+(${regexInt})\\s+(${regexInt})`, 'g');
     sizeRegex.lastIndex = timingRegex.lastIndex;
     let resSize = sizeRegex.exec(text)
+    console.log(resSize)
+
     let nFrames =parseInt(resSize[1]);
     let nKnots = parseInt(resSize[2]);
     // Parse the
     let traces = [];
-    let readNewFloat = new RegExp(`(${regexFloat}),`, 'g');
+    let readNewFloat = new RegExp(`(${regexFloat})[,\\s]`, 'g');
+    readNewFloat.lastIndex = sizeRegex.lastIndex;
     let areas = []
+    console.log(nFrames, nKnots)
     //readNewFloat.lastIndex = sizeRegex.lastIndex;
     for (let i = 0; i < nFrames; ++i){
         let  frame =  new Float32Array(nKnots * 2);
         for (let j = 0; j < 2 * nKnots; ++j) { 
             let res = readNewFloat.exec(text);
             frame[j] = parseFloat(res[1])
+            //console.log(frame[j])
         }
+        //console.log(frame[2 * nKnots - 1], i)
         traces.push(frame);
         areas.push(area2DPolyline(frame));
     }
